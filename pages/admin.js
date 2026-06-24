@@ -1,131 +1,565 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 const YOUR_USER_ID = '2b4afcb9-4075-42a5-a612-949496562698';
 
 export default function Admin() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('events');
   const [events, setEvents] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [newEvent, setNewEvent] = useState({
-    event_type: 'wedding',
-    event_name: '',
-    host_name: '',
-    event_date: '',
-    venue: '',
-    slug: ''
-  });
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [guests, setGuests] = useState([]);
+  const [timeline, setTimeline] = useState([]);
+  const [menu, setMenu] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [songs, setSongs] = useState([]);
 
-  const handleLogin = (e) => {
+  // Forms state
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [showTimelineForm, setShowTimelineForm] = useState(false);
+  const [showMenuForm, setShowMenuForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [editingMenu, setEditingMenu] = useState(null);
+
+  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '' });
+  const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '' });
+  const [newGuest, setNewGuest] = useState({ full_name: '', table_number: '', dietary_requirements: '' });
+  const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
+  const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
+  const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email === 'muchechesio@gmail.com') {
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .single();
+    
+    if (data) {
+      setCurrentUser(data);
       setLoggedIn(true);
       loadEvents();
+      loadUsers();
     } else {
-      alert('Wrong email');
+      alert('Wrong email or password');
     }
   };
 
   const loadEvents = async () => {
-    const { data } = await supabase
-      .from('events')
-      .select('*')
-      .order('event_date', { ascending: true });
+    const { data } = await supabase.from('events').select('*').order('event_date', { ascending: true });
     setEvents(data || []);
   };
 
+  const loadUsers = async () => {
+    const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+    setUsers(data || []);
+  };
+
+  const loadGuests = async (eventId) => {
+    const { data } = await supabase.from('guests').select('*').eq('event_id', eventId).order('table_number');
+    setGuests(data || []);
+  };
+
+  const loadTimeline = async (eventId) => {
+    const { data } = await supabase.from('timeline_items').select('*').eq('event_id', eventId).order('sort_order');
+    setTimeline(data || []);
+  };
+
+  const loadMenu = async (eventId) => {
+    const { data } = await supabase.from('menu_items').select('*').eq('event_id', eventId).order('course_type');
+    setMenu(data || []);
+  };
+
+  const loadPhotos = async (eventId) => {
+    const { data } = await supabase.from('photos').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
+    setPhotos(data || []);
+  };
+
+  const loadMessages = async (eventId) => {
+    const { data } = await supabase.from('guestbook').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
+    setMessages(data || []);
+  };
+
+  const loadSongs = async (eventId) => {
+    const { data } = await supabase.from('song_requests').select('*').eq('event_id', eventId).order('votes', { ascending: false });
+    setSongs(data || []);
+  };
+
+  const selectEvent = (event) => {
+    setSelectedEvent(event);
+    loadGuests(event.id);
+    loadTimeline(event.id);
+    loadMenu(event.id);
+    loadPhotos(event.id);
+    loadMessages(event.id);
+    loadSongs(event.id);
+    setActiveTab('guests');
+  };
+
+  // CRUD Operations
   const createEvent = async (e) => {
     e.preventDefault();
-
-    const { error } = await supabase
-      .from('events')
-      .insert({
-        user_id: YOUR_USER_ID,
-        event_type: newEvent.event_type,
-        event_name: newEvent.event_name,
-        host_name: newEvent.host_name,
-        event_date: newEvent.event_date,
-        venue: newEvent.venue,
-        slug: newEvent.slug
-      });
-    
-    if (error) {
-      alert('Error: ' + error.message);
+    const { error } = await supabase.from('events').insert({ user_id: currentUser?.id || YOUR_USER_ID, ...newEvent });
+    if (!error) { 
+      setShowEventForm(false); 
+      setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '' }); 
+      loadEvents(); 
+      alert('Event created!');
     } else {
-      alert('Event created successfully!');
-      setShowForm(false);
-      setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '' });
-      loadEvents();
+      alert('Error: ' + error.message);
     }
+  };
+
+  const createUser = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.from('users').insert(newUser);
+    if (!error) { 
+      setShowUserForm(false); 
+      setNewUser({ email: '', full_name: '', company_name: '', phone: '', password: '' }); 
+      loadUsers(); 
+      alert('User added!');
+    } else {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const changePassword = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase
+      .from('users')
+      .update({ password: passwordData.newPassword })
+      .eq('id', passwordData.userId);
+    if (!error) {
+      setShowPasswordForm(false);
+      setPasswordData({ userId: '', newPassword: '' });
+      alert('Password updated!');
+    } else {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const addGuest = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    const { error } = await supabase.from('guests').insert({ 
+      event_id: selectedEvent.id, 
+      full_name: newGuest.full_name,
+      table_number: parseInt(newGuest.table_number),
+      dietary_requirements: newGuest.dietary_requirements 
+    });
+    if (!error) { 
+      setShowGuestForm(false); 
+      setNewGuest({ full_name: '', table_number: '', dietary_requirements: '' }); 
+      loadGuests(selectedEvent.id); 
+    } else {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const addTimeline = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    const { error } = await supabase.from('timeline_items').insert({ 
+      event_id: selectedEvent.id, 
+      event_time: newTimeline.event_time,
+      title: newTimeline.title,
+      location: newTimeline.location,
+      sort_order: parseInt(newTimeline.sort_order) || 0 
+    });
+    if (!error) { 
+      setShowTimelineForm(false); 
+      setNewTimeline({ event_time: '', title: '', location: '', sort_order: '' }); 
+      loadTimeline(selectedEvent.id); 
+    } else {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const addMenu = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    
+    if (editingMenu) {
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ course_type: newMenu.course_type, dish_name: newMenu.dish_name, description: newMenu.description })
+        .eq('id', editingMenu);
+      if (!error) {
+        setEditingMenu(null);
+        setShowMenuForm(false);
+        setNewMenu({ course_type: 'starter', dish_name: '', description: '' });
+        loadMenu(selectedEvent.id);
+      }
+    } else {
+      const { error } = await supabase.from('menu_items').insert({ 
+        event_id: selectedEvent.id, 
+        course_type: newMenu.course_type,
+        dish_name: newMenu.dish_name,
+        description: newMenu.description
+      });
+      if (!error) { 
+        setShowMenuForm(false); 
+        setNewMenu({ course_type: 'starter', dish_name: '', description: '' }); 
+        loadMenu(selectedEvent.id); 
+      } else {
+        alert('Error: ' + error.message);
+      }
+    }
+  };
+
+  const editMenuItem = (item) => {
+    setNewMenu({ course_type: item.course_type, dish_name: item.dish_name, description: item.description || '' });
+    setEditingMenu(item.id);
+    setShowMenuForm(true);
+  };
+
+  const deleteItem = async (table, id) => {
+    if (!confirm('Are you sure?')) return;
+    await supabase.from(table).delete().eq('id', id);
+    if (selectedEvent) {
+      loadGuests(selectedEvent.id);
+      loadTimeline(selectedEvent.id);
+      loadMenu(selectedEvent.id);
+      loadPhotos(selectedEvent.id);
+      loadMessages(selectedEvent.id);
+      loadSongs(selectedEvent.id);
+    }
+  };
+
+  const approvePhoto = async (id, approved) => {
+    await supabase.from('photos').update({ is_approved: approved }).eq('id', id);
+    if (selectedEvent) loadPhotos(selectedEvent.id);
   };
 
   if (!loggedIn) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)' }}>
-        <div className="glass-card" style={{ padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '100%' }}>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '24px' }}>Admin Login</h2>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)' }}>
+        <div style={{ background: 'white', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '8px', fontSize: '28px' }}>EverAfter Hub</h2>
+          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>Admin Login</p>
           <form onSubmit={handleLogin}>
-            <input 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="Enter your email" 
-              style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '16px', boxSizing: 'border-box' }} 
-              required 
-            />
-            <button type="submit" className="btn-primary" style={{ width: '100%' }}>Login</button>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '16px', boxSizing: 'border-box' }} required />
+            <button type="submit" style={{ width: '100%', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>Login</button>
           </form>
         </div>
       </div>
     );
   }
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)', padding: '24px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', color: '#1f2937' }}>📋 My Events</h1>
-          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-            {showForm ? '✕ Cancel' : '+ New Event'}
-          </button>
-        </div>
+  const tabs = ['events', 'users', 'guests', 'timeline', 'menu', 'photos', 'messages', 'songs'];
 
-        {showForm && (
-          <div className="glass-card" style={{ padding: '24px', borderRadius: '24px', marginBottom: '24px' }}>
-            <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px' }}>Create New Event</h3>
-            <form onSubmit={createEvent} style={{ display: 'grid', gap: '12px', gridTemplateColumns: '1fr 1fr' }}>
-              <select value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
-                <option value="wedding">💒 Wedding</option>
-                <option value="corporate">💼 Corporate</option>
-                <option value="birthday">🎂 Birthday</option>
-                <option value="gala">✨ Gala</option>
-                <option value="party">🎉 Party</option>
-                <option value="other">🎯 Other</option>
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
+      {/* Top Bar */}
+      <div style={{ background: 'white', padding: '16px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', margin: 0 }}>✨ EverAfter Admin</h1>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', color: '#6b7280' }}>{currentUser?.full_name}</span>
+          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🔑 Change Password</button>
+          <button onClick={() => setLoggedIn(false)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
+        </div>
+      </div>
+
+      {/* Password Change Modal */}
+      {showPasswordForm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '30px', borderRadius: '16px', width: '400px' }}>
+            <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px' }}>Change Password</h3>
+            <form onSubmit={changePassword}>
+              <select value={passwordData.userId} onChange={(e) => setPasswordData({...passwordData, userId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required>
+                <option value="">Select User</option>
+                {users.map(u => <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>)}
               </select>
-              <input placeholder="Event Name" value={newEvent.event_name} onChange={(e) => setNewEvent({...newEvent, event_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-              <input placeholder="Host/Couple Name" value={newEvent.host_name} onChange={(e) => setNewEvent({...newEvent, host_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-              <input type="date" value={newEvent.event_date} onChange={(e) => setNewEvent({...newEvent, event_date: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-              <input placeholder="Venue" value={newEvent.venue} onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-              <input placeholder="URL slug (e.g., tanya-birthday-2026)" value={newEvent.slug} onChange={(e) => setNewEvent({...newEvent, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-              <button type="submit" className="btn-primary" style={{ gridColumn: '1 / -1' }}>Create Event</button>
+              <input type="password" placeholder="New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" style={{ flex: 1, background: '#f59e0b', color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Update Password</button>
+                <button type="button" onClick={() => setShowPasswordForm(false)} style={{ flex: 1, background: '#e5e7eb', color: '#4b5563', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+              </div>
             </form>
           </div>
-        )}
+        </div>
+      )}
 
-        <div style={{ display: 'grid', gap: '16px' }}>
-          {events.map(event => (
-            <div key={event.id} className="glass-card" style={{ padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ fontWeight: 600, color: '#1f2937', margin: 0 }}>{event.event_name}</p>
-                <p style={{ color: '#6b7280', fontSize: '14px', margin: '4px 0' }}>
-                  {event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}
-                </p>
-                <code style={{ fontSize: '12px', color: '#f43f5e' }}>/{event.slug}</code>
-              </div>
-              <a href={`/event/${event.slug}`} target="_blank" style={{ color: '#f43f5e', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}>View →</a>
-            </div>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 73px)' }}>
+        {/* Sidebar */}
+        <div style={{ width: '220px', background: 'white', padding: '20px', borderRight: '1px solid #e5e7eb' }}>
+          {tabs.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                display: 'block', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px',
+                border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px',
+                textTransform: 'capitalize', background: activeTab === tab ? '#fff1f2' : 'transparent',
+                color: activeTab === tab ? '#f43f5e' : '#4b5563'
+              }}
+            >
+              {tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}
+              {tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}
+              {tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}
+            </button>
           ))}
+        </div>
+
+        {/* Main Content */}
+        <div style={{ flex: 1, padding: '24px' }}>
+          
+          {/* EVENTS TAB */}
+          {activeTab === 'events' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Events</h2>
+                <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>
+                  {showEventForm ? 'Cancel' : '+ New Event'}
+                </button>
+              </div>
+              {showEventForm && (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                  <form onSubmit={createEvent} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+                    <select value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
+                      <option value="wedding">💒 Wedding</option><option value="corporate">💼 Corporate</option><option value="birthday">🎂 Birthday</option><option value="gala">✨ Gala</option><option value="party">🎉 Party</option><option value="other">🎯 Other</option>
+                    </select>
+                    <input placeholder="Event Name" value={newEvent.event_name} onChange={(e) => setNewEvent({...newEvent, event_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Host/Couple" value={newEvent.host_name} onChange={(e) => setNewEvent({...newEvent, host_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input type="date" value={newEvent.event_date} onChange={(e) => setNewEvent({...newEvent, event_date: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Venue" value={newEvent.venue} onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="URL slug" value={newEvent.slug} onChange={(e) => setNewEvent({...newEvent, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Create Event</button>
+                  </form>
+                </div>
+              )}
+              {events.map(event => (
+                <div key={event.id} onClick={() => selectEvent(event)} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
+                  <div>
+                    <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
+                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
+                  </div>
+                  <span style={{ color: '#f43f5e' }}>Manage →</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* USERS TAB */}
+          {activeTab === 'users' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Admin Users</h2>
+                <button onClick={() => setShowUserForm(!showUserForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add User</button>
+              </div>
+              {showUserForm && (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                  <form onSubmit={createUser} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+                    <input placeholder="Email" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Full Name" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Company" value={newUser.company_name} onChange={(e) => setNewUser({...newUser, company_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <input placeholder="Phone" value={newUser.phone} onChange={(e) => setNewUser({...newUser, phone: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <input type="password" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add User</button>
+                  </form>
+                </div>
+              )}
+              {users.map(user => (
+                <div key={user.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name}</p>
+                  <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{user.email} • {user.company_name || 'N/A'} • {user.phone || 'N/A'}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* GUESTS TAB */}
+          {activeTab === 'guests' && selectedEvent && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Guests — {selectedEvent.event_name}</h2>
+                <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
+              </div>
+              {showGuestForm && (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                  <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr' }}>
+                    <input placeholder="Full Name" value={newGuest.full_name} onChange={(e) => setNewGuest({...newGuest, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
+                  </form>
+                </div>
+              )}
+              {guests.map(guest => (
+                <div key={guest.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div>
+                    <span style={{ fontWeight: 600 }}>{guest.full_name}</span>
+                    <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>Table {guest.table_number}</span>
+                    {guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginLeft: '8px' }}>{guest.dietary_requirements}</span>}
+                  </div>
+                  <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TIMELINE TAB */}
+          {activeTab === 'timeline' && selectedEvent && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Timeline — {selectedEvent.event_name}</h2>
+                <button onClick={() => setShowTimelineForm(!showTimelineForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Item</button>
+              </div>
+              {showTimelineForm && (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                  <form onSubmit={addTimeline} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
+                    <input type="time" value={newTimeline.event_time} onChange={(e) => setNewTimeline({...newTimeline, event_time: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Title" value={newTimeline.title} onChange={(e) => setNewTimeline({...newTimeline, title: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Location" value={newTimeline.location} onChange={(e) => setNewTimeline({...newTimeline, location: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <input placeholder="Order #" type="number" value={newTimeline.sort_order} onChange={(e) => setNewTimeline({...newTimeline, sort_order: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Timeline Item</button>
+                  </form>
+                </div>
+              )}
+              {timeline.map(item => (
+                <div key={item.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontWeight: 600, color: '#f43f5e' }}>{item.event_time?.slice(0,5)}</span>
+                    <span style={{ fontWeight: 600, marginLeft: '12px' }}>{item.title}</span>
+                    <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>{item.location}</span>
+                  </div>
+                  <button onClick={() => deleteItem('timeline_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* MENU TAB */}
+          {activeTab === 'menu' && selectedEvent && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Menu — {selectedEvent.event_name}</h2>
+                <button onClick={() => { setEditingMenu(null); setNewMenu({ course_type: 'starter', dish_name: '', description: '' }); setShowMenuForm(!showMenuForm); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>
+                  {showMenuForm ? 'Cancel' : '+ Add Course'}
+                </button>
+              </div>
+              {showMenuForm && (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                  <h4 style={{ marginBottom: '12px' }}>{editingMenu ? 'Edit Course' : 'Add New Course'}</h4>
+                  <form onSubmit={addMenu} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+                    <select value={newMenu.course_type} onChange={(e) => setNewMenu({...newMenu, course_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
+                      <option value="starter">🥗 Starter</option>
+                      <option value="main">🍖 Main Course</option>
+                      <option value="dessert">🍫 Dessert</option>
+                      <option value="drinks">🍷 Drinks</option>
+                    </select>
+                    <input placeholder="Dish Name" value={newMenu.dish_name} onChange={(e) => setNewMenu({...newMenu, dish_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Description (optional)" value={newMenu.description} onChange={(e) => setNewMenu({...newMenu, description: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', gridColumn: '1/-1' }} />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: editingMenu ? '#f59e0b' : '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+                      {editingMenu ? 'Update Course' : 'Add Course'}
+                    </button>
+                  </form>
+                </div>
+              )}
+              {/* Group menu by course type */}
+              {['starter', 'main', 'dessert', 'drinks'].map(type => {
+                const items = menu.filter(m => m.course_type === type);
+                if (items.length === 0) return null;
+                return (
+                  <div key={type} style={{ marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px', fontWeight: 600 }}>
+                      {type === 'starter' && '🥗 Starters'}
+                      {type === 'main' && '🍖 Main Courses'}
+                      {type === 'dessert' && '🍫 Desserts'}
+                      {type === 'drinks' && '🍷 Drinks'}
+                    </h3>
+                    {items.map(item => (
+                      <div key={item.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                        <div>
+                          <span style={{ fontWeight: 600 }}>{item.dish_name}</span>
+                          {item.description && <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>— {item.description}</span>}
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button onClick={() => editMenuItem(item)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
+                          <button onClick={() => deleteItem('menu_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+              {menu.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No menu items yet. Add your first course!</p>}
+            </div>
+          )}
+
+          {/* PHOTOS TAB */}
+          {activeTab === 'photos' && selectedEvent && (
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photos — {selectedEvent.event_name}</h2>
+              {photos.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No photos uploaded yet.</p>}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                {photos.map(photo => (
+                  <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                    <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
+                    <div style={{ padding: '10px' }}>
+                      <p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button onClick={() => approvePhoto(photo.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Approve</button>
+                        <button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MESSAGES TAB */}
+          {activeTab === 'messages' && selectedEvent && (
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Guestbook — {selectedEvent.event_name}</h2>
+              {messages.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No messages yet.</p>}
+              {messages.map(msg => (
+                <div key={msg.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}>
+                  <div>
+                    <p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p>
+                    <p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p>
+                  </div>
+                  <button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* SONGS TAB */}
+          {activeTab === 'songs' && selectedEvent && (
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Song Requests — {selectedEvent.event_name}</h2>
+              {songs.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No song requests yet.</p>}
+              {songs.map(song => (
+                <div key={song.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}>
+                  <div>
+                    <p style={{ fontWeight: 600, margin: 0 }}>🎵 {song.song_title}</p>
+                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>by {song.requested_by} • 👍 {song.votes} votes</p>
+                  </div>
+                  <button onClick={() => deleteItem('song_requests', song.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {['guests','timeline','menu','photos','messages','songs'].includes(activeTab) && !selectedEvent && (
+            <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}>
+              <p style={{ fontSize: '40px' }}>👈</p>
+              <p>Select an event from the Events tab first</p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
