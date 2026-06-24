@@ -159,9 +159,7 @@ export async function getServerSideProps({ params }) {
     if (!event) {
       return { notFound: true };
     }
-    return { 
-      props: { event }
-    };
+    return { props: { event } };
   } catch (error) {
     console.error('Error loading event:', error);
     return { notFound: true };
