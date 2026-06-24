@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { getEventData, getGuestbookMessages, getSongRequests } from '../../../lib/eventData';
+import { getEventData, getGuestbookMessages, getSongRequests, addGuestbookMessage, addSongRequest } from '../../../lib/eventData';
 
 function lookupGuest(guests, name) {
   return guests.find(
@@ -202,7 +202,6 @@ function Guestbook({ name, eventId, messages, onUpdate }) {
   const handleSend = async (e) => {
     e.preventDefault();
     if (msg.trim()) {
-      const { addGuestbookMessage } = await import('../../../lib/eventData');
       await addGuestbookMessage(eventId, name, msg);
       setMsg('');
       onUpdate();
@@ -230,7 +229,6 @@ function SongRequests({ name, eventId, requests, onUpdate }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (song.trim()) {
-      const { addSongRequest } = await import('../../../lib/eventData');
       await addSongRequest(eventId, song, name);
       setSong('');
       onUpdate();
