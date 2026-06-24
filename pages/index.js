@@ -9,6 +9,17 @@ export default function EventLanding({ event }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
+  if (router.isFallback) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="animate-spin" style={{ fontSize: '36px', marginBottom: '16px' }}>🌸</div>
+          <p style={{ color: '#6b7280' }}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -148,8 +159,11 @@ export async function getServerSideProps({ params }) {
     if (!event) {
       return { notFound: true };
     }
-    return { props: { event } };
+    return { 
+      props: { event }
+    };
   } catch (error) {
+    console.error('Error loading event:', error);
     return { notFound: true };
   }
 }
