@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const YOUR_USER_ID = '2b4afcb9-4075-42a5-a612-949496562698';
+const baseUrl = 'https://everafter-hub.vercel.app';
 
 export default function Admin() {
   const [email, setEmail] = useState('');
@@ -18,8 +20,9 @@ export default function Admin() {
   const [photos, setPhotos] = useState([]);
   const [messages, setMessages] = useState([]);
   const [songs, setSongs] = useState([]);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrEvent, setQrEvent] = useState(null);
 
-  // Forms state
   const [showEventForm, setShowEventForm] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
@@ -105,7 +108,22 @@ export default function Admin() {
     setActiveTab('guests');
   };
 
-  // CRUD Operations
+  const openQR = (event) => {
+    setQrEvent(event);
+    setShowQRModal(true);
+  };
+
+  const downloadQR = () => {
+    const canvas = document.getElementById('admin-qr-canvas');
+    if (canvas) {
+      const pngUrl = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+      const link = document.createElement('a');
+      link.download = `everafter-qr-${qrEvent?.slug || 'event'}.png`;
+      link.href = pngUrl;
+      link.click();
+    }
+  };
+
   const createEvent = async (e) => {
     e.preventDefault();
     const { error } = await supabase.from('events').insert({ user_id: currentUser?.id || YOUR_USER_ID, ...newEvent });
@@ -260,7 +278,6 @@ export default function Admin() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
-      {/* Top Bar */}
       <div style={{ background: 'white', padding: '16px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', margin: 0 }}>✨ EverAfter Admin</h1>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -270,7 +287,36 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Password Change Modal */}
+      {showQRModal && qrEvent && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', textAlign: 'center', maxWidth: '420px', width: '90%' }}>
+            <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '4px' }}>{qrEvent.event_name}</h3>
+            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>
+              {qrEvent.event_type} • {new Date(qrEvent.event_date).toLocaleDateString()}
+            </p>
+            <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '16px', display: 'inline-block', marginBottom: '16px' }}>
+              <QRCodeCanvas
+                id="admin-qr-canvas"
+                value={`${baseUrl}/event/${qrEvent.slug}`}
+                size={180}
+                level="H"
+                includeMargin={true}
+                fgColor="#e11d48"
+                bgColor="#ffffff"
+              />
+            </div>
+            <p style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace', marginBottom: '20px', wordBreak: 'break-all' }}>
+              {baseUrl}/event/{qrEvent.slug}
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button onClick={downloadQR} style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>📥 Download QR</button>
+              <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/event/${qrEvent.slug}`); alert('Link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', padding: '10px 20px', borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>📋 Copy Link</button>
+            </div>
+            <button onClick={() => setShowQRModal(false)} style={{ marginTop: '16px', background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px' }}>Close</button>
+          </div>
+        </div>
+      )}
+
       {showPasswordForm && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: 'white', padding: '30px', borderRadius: '16px', width: '400px' }}>
@@ -291,37 +337,21 @@ export default function Admin() {
       )}
 
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 73px)' }}>
-        {/* Sidebar */}
         <div style={{ width: '220px', background: 'white', padding: '20px', borderRight: '1px solid #e5e7eb' }}>
           {tabs.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                display: 'block', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px',
-                border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px',
-                textTransform: 'capitalize', background: activeTab === tab ? '#fff1f2' : 'transparent',
-                color: activeTab === tab ? '#f43f5e' : '#4b5563'
-              }}
-            >
-              {tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}
-              {tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}
-              {tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}
+            <button key={tab} onClick={() => setActiveTab(tab)} style={{ display: 'block', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? '#fff1f2' : 'transparent', color: activeTab === tab ? '#f43f5e' : '#4b5563' }}>
+              {tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}{tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}{tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}
             </button>
           ))}
         </div>
 
-        {/* Main Content */}
         <div style={{ flex: 1, padding: '24px' }}>
           
-          {/* EVENTS TAB */}
           {activeTab === 'events' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Events</h2>
-                <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>
-                  {showEventForm ? 'Cancel' : '+ New Event'}
-                </button>
+                <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
               </div>
               {showEventForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
@@ -339,18 +369,26 @@ export default function Admin() {
                 </div>
               )}
               {events.map(event => (
-                <div key={event.id} onClick={() => selectEvent(event)} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
-                  <div>
-                    <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
-                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
+                <div key={event.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '50px', height: '50px', flexShrink: 0 }}>
+                      <QRCodeCanvas value={`${baseUrl}/event/${event.slug}`} size={50} level="L" fgColor="#e11d48" bgColor="#ffffff" includeMargin={false} />
+                    </div>
+                    <div>
+                      <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
+                      <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
+                      <code style={{ fontSize: '11px', color: '#f43f5e' }}>/{event.slug}</code>
+                    </div>
                   </div>
-                  <span style={{ color: '#f43f5e' }}>Manage →</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => openQR(event)} style={{ background: '#dbeafe', color: '#1e40af', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>📱 QR</button>
+                    <button onClick={() => selectEvent(event)} style={{ background: '#fff1f2', color: '#f43f5e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Manage →</button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* USERS TAB */}
           {activeTab === 'users' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -378,7 +416,6 @@ export default function Admin() {
             </div>
           )}
 
-          {/* GUESTS TAB */}
           {activeTab === 'guests' && selectedEvent && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -397,18 +434,13 @@ export default function Admin() {
               )}
               {guests.map(guest => (
                 <div key={guest.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                  <div>
-                    <span style={{ fontWeight: 600 }}>{guest.full_name}</span>
-                    <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>Table {guest.table_number}</span>
-                    {guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginLeft: '8px' }}>{guest.dietary_requirements}</span>}
-                  </div>
+                  <div><span style={{ fontWeight: 600 }}>{guest.full_name}</span><span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>Table {guest.table_number}</span>{guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginLeft: '8px' }}>{guest.dietary_requirements}</span>}</div>
                   <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* TIMELINE TAB */}
           {activeTab === 'timeline' && selectedEvent && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -428,138 +460,85 @@ export default function Admin() {
               )}
               {timeline.map(item => (
                 <div key={item.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ fontWeight: 600, color: '#f43f5e' }}>{item.event_time?.slice(0,5)}</span>
-                    <span style={{ fontWeight: 600, marginLeft: '12px' }}>{item.title}</span>
-                    <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>{item.location}</span>
-                  </div>
+                  <div><span style={{ fontWeight: 600, color: '#f43f5e' }}>{item.event_time?.slice(0,5)}</span><span style={{ fontWeight: 600, marginLeft: '12px' }}>{item.title}</span><span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>{item.location}</span></div>
                   <button onClick={() => deleteItem('timeline_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* MENU TAB */}
           {activeTab === 'menu' && selectedEvent && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Menu — {selectedEvent.event_name}</h2>
-                <button onClick={() => { setEditingMenu(null); setNewMenu({ course_type: 'starter', dish_name: '', description: '' }); setShowMenuForm(!showMenuForm); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>
-                  {showMenuForm ? 'Cancel' : '+ Add Course'}
-                </button>
+                <button onClick={() => { setEditingMenu(null); setNewMenu({ course_type: 'starter', dish_name: '', description: '' }); setShowMenuForm(!showMenuForm); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showMenuForm ? 'Cancel' : '+ Add Course'}</button>
               </div>
               {showMenuForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
                   <h4 style={{ marginBottom: '12px' }}>{editingMenu ? 'Edit Course' : 'Add New Course'}</h4>
                   <form onSubmit={addMenu} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
                     <select value={newMenu.course_type} onChange={(e) => setNewMenu({...newMenu, course_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
-                      <option value="starter">🥗 Starter</option>
-                      <option value="main">🍖 Main Course</option>
-                      <option value="dessert">🍫 Dessert</option>
-                      <option value="drinks">🍷 Drinks</option>
+                      <option value="starter">🥗 Starter</option><option value="main">🍖 Main Course</option><option value="dessert">🍫 Dessert</option><option value="drinks">🍷 Drinks</option>
                     </select>
                     <input placeholder="Dish Name" value={newMenu.dish_name} onChange={(e) => setNewMenu({...newMenu, dish_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Description (optional)" value={newMenu.description} onChange={(e) => setNewMenu({...newMenu, description: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', gridColumn: '1/-1' }} />
-                    <button type="submit" style={{ gridColumn: '1/-1', background: editingMenu ? '#f59e0b' : '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
-                      {editingMenu ? 'Update Course' : 'Add Course'}
-                    </button>
+                    <button type="submit" style={{ gridColumn: '1/-1', background: editingMenu ? '#f59e0b' : '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>{editingMenu ? 'Update Course' : 'Add Course'}</button>
                   </form>
                 </div>
               )}
-              {/* Group menu by course type */}
               {['starter', 'main', 'dessert', 'drinks'].map(type => {
                 const items = menu.filter(m => m.course_type === type);
                 if (items.length === 0) return null;
                 return (
                   <div key={type} style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px', fontWeight: 600 }}>
-                      {type === 'starter' && '🥗 Starters'}
-                      {type === 'main' && '🍖 Main Courses'}
-                      {type === 'dessert' && '🍫 Desserts'}
-                      {type === 'drinks' && '🍷 Drinks'}
-                    </h3>
+                    <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px', fontWeight: 600 }}>{type === 'starter' && '🥗 Starters'}{type === 'main' && '🍖 Main Courses'}{type === 'dessert' && '🍫 Desserts'}{type === 'drinks' && '🍷 Drinks'}</h3>
                     {items.map(item => (
                       <div key={item.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                        <div>
-                          <span style={{ fontWeight: 600 }}>{item.dish_name}</span>
-                          {item.description && <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>— {item.description}</span>}
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button onClick={() => editMenuItem(item)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                          <button onClick={() => deleteItem('menu_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
-                        </div>
+                        <div><span style={{ fontWeight: 600 }}>{item.dish_name}</span>{item.description && <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>— {item.description}</span>}</div>
+                        <div style={{ display: 'flex', gap: '6px' }}><button onClick={() => editMenuItem(item)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Edit</button><button onClick={() => deleteItem('menu_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button></div>
                       </div>
                     ))}
                   </div>
                 );
               })}
-              {menu.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No menu items yet. Add your first course!</p>}
             </div>
           )}
 
-          {/* PHOTOS TAB */}
           {activeTab === 'photos' && selectedEvent && (
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photos — {selectedEvent.event_name}</h2>
-              {photos.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No photos uploaded yet.</p>}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.map(photo => (
                   <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                     <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
-                    <div style={{ padding: '10px' }}>
-                      <p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button onClick={() => approvePhoto(photo.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Approve</button>
-                        <button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
-                      </div>
-                    </div>
+                    <div style={{ padding: '10px' }}><p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p><div style={{ display: 'flex', gap: '6px' }}><button onClick={() => approvePhoto(photo.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Approve</button><button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button></div></div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* MESSAGES TAB */}
           {activeTab === 'messages' && selectedEvent && (
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Guestbook — {selectedEvent.event_name}</h2>
-              {messages.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No messages yet.</p>}
               {messages.map(msg => (
-                <div key={msg.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p>
-                    <p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p>
-                  </div>
-                  <button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button>
-                </div>
+                <div key={msg.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}><div><p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p><p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p></div><button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button></div>
               ))}
             </div>
           )}
 
-          {/* SONGS TAB */}
           {activeTab === 'songs' && selectedEvent && (
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Song Requests — {selectedEvent.event_name}</h2>
-              {songs.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px' }}>No song requests yet.</p>}
               {songs.map(song => (
-                <div key={song.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ fontWeight: 600, margin: 0 }}>🎵 {song.song_title}</p>
-                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>by {song.requested_by} • 👍 {song.votes} votes</p>
-                  </div>
-                  <button onClick={() => deleteItem('song_requests', song.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button>
-                </div>
+                <div key={song.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}><div><p style={{ fontWeight: 600, margin: 0 }}>🎵 {song.song_title}</p><p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>by {song.requested_by} • 👍 {song.votes}</p></div><button onClick={() => deleteItem('song_requests', song.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button></div>
               ))}
             </div>
           )}
 
           {['guests','timeline','menu','photos','messages','songs'].includes(activeTab) && !selectedEvent && (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}>
-              <p style={{ fontSize: '40px' }}>👈</p>
-              <p>Select an event from the Events tab first</p>
-            </div>
+            <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}><p style={{ fontSize: '40px' }}>👈</p><p>Select an event from the Events tab first</p></div>
           )}
-
         </div>
       </div>
     </div>
