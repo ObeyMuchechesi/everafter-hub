@@ -297,7 +297,7 @@ export default function Admin() {
             <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '16px', display: 'inline-block', marginBottom: '16px' }}>
               <QRCodeCanvas
                 id="admin-qr-canvas"
-                value={`${baseUrl}/event/${qrEvent.slug}`}
+                value={`${baseUrl}/event?id=${qrEvent.slug}`}
                 size={180}
                 level="H"
                 includeMargin={true}
@@ -306,11 +306,11 @@ export default function Admin() {
               />
             </div>
             <p style={{ fontSize: '12px', color: '#9ca3af', fontFamily: 'monospace', marginBottom: '20px', wordBreak: 'break-all' }}>
-              {baseUrl}/event/{qrEvent.slug}
+              {baseUrl}/event?id={qrEvent.slug}
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button onClick={downloadQR} style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>📥 Download QR</button>
-              <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/event/${qrEvent.slug}`); alert('Link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', padding: '10px 20px', borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>📋 Copy Link</button>
+              <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/event?id=${qrEvent.slug}`); alert('Link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', padding: '10px 20px', borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>📋 Copy Link</button>
             </div>
             <button onClick={() => setShowQRModal(false)} style={{ marginTop: '16px', background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px' }}>Close</button>
           </div>
@@ -372,12 +372,12 @@ export default function Admin() {
                 <div key={event.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '50px', height: '50px', flexShrink: 0 }}>
-                      <QRCodeCanvas value={`${baseUrl}/event/${event.slug}`} size={50} level="L" fgColor="#e11d48" bgColor="#ffffff" includeMargin={false} />
+                      <QRCodeCanvas value={`${baseUrl}/event?id=${event.slug}`} size={50} level="L" fgColor="#e11d48" bgColor="#ffffff" includeMargin={false} />
                     </div>
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
                       <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
-                      <code style={{ fontSize: '11px', color: '#f43f5e' }}>/{event.slug}</code>
+                      <code style={{ fontSize: '11px', color: '#f43f5e' }}>event?id={event.slug}</code>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
