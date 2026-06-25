@@ -39,10 +39,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
-  const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
-  const [newGuest, setNewGuest] = useState({ full_name: '', table_number: '', dietary_requirements: '' });
-  const [bulkGuestsText, setBulkGuestsText] = useState('');
-  const [isBulkUpload, setIsBulkUpload] = useState(false);
+  const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' });
   const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
   const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
   const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
@@ -319,56 +316,17 @@ export default function Admin({ initialRole = 'admin' }) {
     setIsLoading(true);
     const { error } = await supabase.from('guests').insert({ 
       event_id: selectedEvent.id, 
-      full_name: newGuest.full_name,
+      first_name: newGuest.first_name,
+      last_name: newGuest.last_name,
       table_number: parseInt(newGuest.table_number),
       dietary_requirements: newGuest.dietary_requirements 
     });
     if (!error) { 
       setShowGuestForm(false); 
-      setNewGuest({ full_name: '', table_number: '', dietary_requirements: '' }); 
+      setNewGuest({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' }); 
       loadGuests(selectedEvent.id); 
     } else {
       alert('Error: ' + error.message);
-    }
-    setIsLoading(false);
-  };
-
-  const handleBulkUpload = async (e) => {
-    e.preventDefault();
-    if (!selectedEvent || !bulkGuestsText.trim()) return;
-    setIsLoading(true);
-
-    const lines = bulkGuestsText.split('\n');
-    const guestsToInsert = [];
-    
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      const parts = line.split(',').map(p => p.trim());
-      if (parts.length > 0) {
-        let name = parts.length >= 2 ? `${parts[0]} ${parts[1]}`.trim() : parts[0];
-        let tNum = parseInt(parts.length >= 3 ? parts[2] : (parts[1] || '0')) || 0;
-        let diet = parts.length >= 4 ? parts[3] : '';
-
-        guestsToInsert.push({
-          event_id: selectedEvent.id,
-          full_name: name,
-          table_number: tNum,
-          dietary_requirements: diet
-        });
-      }
-    }
-
-    if (guestsToInsert.length > 0) {
-      const { error } = await supabase.from('guests').insert(guestsToInsert);
-      if (!error) {
-        setShowGuestForm(false);
-        setBulkGuestsText('');
-        setIsBulkUpload(false);
-        loadGuests(selectedEvent.id);
-        alert(`${guestsToInsert.length} guests uploaded successfully!`);
-      } else {
-        alert('Error during bulk upload: ' + error.message);
-      }
     }
     setIsLoading(false);
   };
@@ -658,36 +616,22 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Guests — {selectedEvent.event_name}</h2>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={() => { setIsBulkUpload(true); setShowGuestForm(true); }} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e5e7eb', cursor: 'pointer', background: 'white', color: '#4b5563', fontWeight: 600 }}>Bulk Upload</button>
-                  <button onClick={() => { setIsBulkUpload(false); setShowGuestForm(true); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
-                </div>
+                <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
               </div>
               {showGuestForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <h4 style={{ margin: 0 }}>{isBulkUpload ? 'Bulk Upload Guests' : 'Add New Guest'}</h4>
-                    <button onClick={() => setShowGuestForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>Cancel</button>
-                  </div>
-                  {isBulkUpload ? (
-                    <form onSubmit={handleBulkUpload} style={{ display: 'grid', gap: '10px' }}>
-                      <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Format each line as: First Name, Last Name, Table Number, Dietary Requirements</p>
-                      <textarea placeholder="e.g. John, Doe, 5, Vegan" value={bulkGuestsText} onChange={(e) => setBulkGuestsText(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', height: '120px', fontFamily: 'monospace', fontSize: '13px' }} required />
-                      <button type="submit" style={{ background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Upload Guests</button>
-                    </form>
-                  ) : (
-                    <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr' }}>
-                      <input placeholder="Full Name" value={newGuest.full_name} onChange={(e) => setNewGuest({...newGuest, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                      <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                      <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                      <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
-                    </form>
-                  )}
+                  <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
+                    <input placeholder="First Name" value={newGuest.first_name} onChange={(e) => setNewGuest({...newGuest, first_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Surname" value={newGuest.last_name} onChange={(e) => setNewGuest({...newGuest, last_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
+                  </form>
                 </div>
               )}
               {guests.map(guest => (
                 <div key={guest.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                  <div><span style={{ fontWeight: 600 }}>{guest.full_name}</span><span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>Table {guest.table_number}</span>{guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginLeft: '8px' }}>{guest.dietary_requirements}</span>}</div>
+                  <div><span style={{ fontWeight: 600 }}>{guest.first_name} {guest.last_name}</span><span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>Table {guest.table_number}</span>{guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginLeft: '8px' }}>{guest.dietary_requirements}</span>}</div>
                   <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
                 </div>
               ))}

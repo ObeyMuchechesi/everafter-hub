@@ -54,7 +54,13 @@ export default function EventPage() {
       couple: eventData.host_name || 'Guest',
       date: new Date(eventData.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       venue: eventData.venue || '',
-      guests: guests?.map(g => ({ name: g.full_name, table: g.table_number, diet: g.dietary_requirements || '' })) || [],
+      guests: guests?.map(g => ({ 
+        firstName: g.first_name, 
+        lastName: g.last_name, 
+        name: `${g.first_name} ${g.last_name}`.trim(), 
+        table: g.table_number, 
+        diet: g.dietary_requirements || '' 
+      })) || [],
       timeline: timeline?.map(t => ({ time: t.event_time?.slice(0, 5), event: t.title, location: t.location || '' })) || [],
       menu: { starter: menu.starter || '', main: menu.main || '', dessert: menu.dessert || '' }
     });
@@ -63,8 +69,7 @@ export default function EventPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const fullName = `${firstName.trim()} ${lastName.trim()}`;
-    const found = lookupGuest(event.guests, fullName);
+    const found = lookupGuest(event.guests, firstName, lastName);
     if (found) { setGuest(found); setError(''); }
     else { setError('Name not found. Please check your spelling.'); }
   };
