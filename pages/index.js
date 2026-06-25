@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { lookupGuest } from '../lib/guestLookup';
-import { getEventData } from '../lib/eventData';
 
 export default function EventLanding({ event }) {
   const [name, setName] = useState('');
@@ -195,6 +194,7 @@ export default function EventLanding({ event }) {
 
 export async function getServerSideProps({ params }) {
   try {
+    const { getEventData } = await import('../lib/eventData');
     const event = params?.eventId ? await getEventData(params.eventId) : null;
     return {
       props: { event: event || null }
