@@ -1,24 +1,45 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export default function SongRequests({ name }) {
-  const [requests, setRequests] = useState([
-    { song: 'Perfect - Ed Sheeran', by: 'Tendai', votes: 5 },
-    { song: 'All of Me - John Legend', by: 'Rudo', votes: 3 },
-  ]);
+export default function SongRequests({ name, eventId }) {
+  const [requests, setRequests] = useState([]);
   const [song, setSong] = useState('');
 
-  const handleSubmit = (e) => {
+  const loadRequests = async () => {
+    if (!eventId) return;
+    const response = await fetch(`/api/songs?eventId=${eventId}`);
+    const data = await response.json();
+    setRequests(data || []);
+  };
+
+  useEffect(() => {
+    loadRequests();
+  }, [eventId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (song.trim()) {
-      setRequests([...requests, { song: song.trim(), by: name || 'You', votes: 0 }]);
+    if (!song.trim() || !eventId) return;
+
+    const response = await fetch('/api/songs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId, songTitle: song.trim(), requestedBy: name || 'Guest' }),
+    });
+
+    if (response.ok) {
       setSong('');
+      loadRequests();
     }
   };
 
-  const handleVote = (index) => {
-    const updated = [...requests];
-    updated[index].votes += 1;
-    setRequests(updated);
+  const handleVote = async (index) => {
+    const item = requests[index];
+    if (!item?.id) return;
+    await fetch('/api/songs', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ songRequestId: item.id }),
+    });
+    loadRequests();
   };
 
   return (
@@ -69,8 +90,8 @@ export default function SongRequests({ name }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ fontSize: '28px' }}>🎶</span>
               <div>
-                <p style={{ fontWeight: 600, color: '#1f2937', margin: 0 }}>{r.song}</p>
-                <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>Requested by {r.by}</p>
+                <p style={{ fontWeight: 600, color: '#1f2937', margin: 0 }}>{r.song_title || r.song}</p>
+                <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>Requested by {r.requested_by || r.by}</p>
               </div>
             </div>
             <button
@@ -89,7 +110,7 @@ export default function SongRequests({ name }) {
                 gap: '4px'
               }}
             >
-              👍 {r.votes}
+              👍 {r.votes || 0}
             </button>
           </div>
         ))}

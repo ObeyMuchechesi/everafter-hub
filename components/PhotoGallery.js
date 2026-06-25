@@ -1,16 +1,37 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export default function PhotoGallery({ event }) {
-  const [images] = useState(event.photos || []);
-  const [uploaded, setUploaded] = useState([]);
+export default function PhotoGallery({ event, eventId }) {
+  const [images, setImages] = useState(event?.photos || []);
   const [viewing, setViewing] = useState(null);
 
-  const handleUpload = (e) => {
+  const loadPhotos = async () => {
+    if (!eventId) return;
+    const response = await fetch(`/api/photos?eventId=${eventId}`);
+    const data = await response.json();
+    setImages(data || []);
+  };
+
+  useEffect(() => {
+    loadPhotos();
+  }, [eventId]);
+
+  const handleUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setUploaded([{ url, caption: 'Your moment' }, ...uploaded]);
-    }
+    if (!file || !eventId) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const response = await fetch('/api/photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, imageUrl: reader.result, caption: file.name, uploadedBy: 'Guest' }),
+      });
+
+      if (response.ok) {
+        loadPhotos();
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -33,7 +54,7 @@ export default function PhotoGallery({ event }) {
         </label>
       </div>
 
-      {[...uploaded, ...images].length === 0 && (
+      {images.length === 0 && (
         <div style={{ textAlign: 'center', padding: '48px', color: '#9ca3af' }}>
           <p style={{ fontSize: '40px', marginBottom: '8px' }}>📷</p>
           <p>No photos yet. Be the first to share!</p>
@@ -41,7 +62,7 @@ export default function PhotoGallery({ event }) {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-        {[...uploaded, ...images].map((pic, i) => (
+        {images.map((pic, i) => (
           <div
             key={i}
             onClick={() => setViewing(pic)}
@@ -53,7 +74,7 @@ export default function PhotoGallery({ event }) {
               boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
             }}
           >
-            <img src={pic.url} alt={pic.caption || 'Photo'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={pic.image_url || pic.url} alt={pic.caption || 'Photo'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         ))}
       </div>

@@ -1,17 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export default function Guestbook({ name }) {
-  const [messages, setMessages] = useState([
-    { author: 'Rudo', text: 'So happy for you two! What a beautiful day ❤️', time: '2 min ago' },
-    { author: 'Tendai', text: 'The ceremony was absolutely stunning! ✨', time: '15 min ago' },
-  ]);
+export default function Guestbook({ name, eventId }) {
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const handleSubmit = (e) => {
+  const loadMessages = async () => {
+    if (!eventId) return;
+    setLoading(true);
+    const response = await fetch(`/api/guestbook?eventId=${eventId}`);
+    const data = await response.json();
+    setMessages(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadMessages();
+  }, [eventId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      setMessages([{ author: name || 'You', text: newMessage, time: 'Just now' }, ...messages]);
+    if (!newMessage.trim() || !eventId) return;
+
+    const response = await fetch('/api/guestbook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId, guestName: name || 'Guest', message: newMessage.trim() }),
+    });
+
+    if (response.ok) {
       setNewMessage('');
+      loadMessages();
     }
   };
 
@@ -50,6 +69,8 @@ export default function Guestbook({ name }) {
       </form>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+        {loading && <p style={{ color: '#9ca3af' }}>Loading messages...</p>}
+        {!loading && messages.length === 0 && <p style={{ color: '#9ca3af' }}>No messages yet. Be the first to write one.</p>}
         {messages.map((msg, i) => (
           <div key={i} style={{
             background: 'white',
@@ -73,10 +94,10 @@ export default function Guestbook({ name }) {
               }}>
                 {msg.author[0]}
               </div>
-              <span style={{ fontWeight: 600, color: '#1f2937' }}>{msg.author}</span>
-              <span style={{ color: '#9ca3af', fontSize: '12px', marginLeft: 'auto' }}>{msg.time}</span>
+              <span style={{ fontWeight: 600, color: '#1f2937' }}>{msg.guest_name || msg.author}</span>
+              <span style={{ color: '#9ca3af', fontSize: '12px', marginLeft: 'auto' }}>{new Date(msg.created_at).toLocaleString()}</span>
             </div>
-            <p style={{ color: '#4b5563', margin: '0 0 0 40px' }}>{msg.text}</p>
+            <p style={{ color: '#4b5563', margin: '0 0 0 40px' }}>{msg.message || msg.text}</p>
           </div>
         ))}
       </div>

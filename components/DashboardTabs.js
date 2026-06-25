@@ -5,17 +5,19 @@ import Guestbook from './Guestbook';
 import SongRequests from './SongRequests';
 
 export default function DashboardTabs({ event, activeTab, name }) {
+  const eventId = event?.eventId || event?.id;
+
   switch (activeTab) {
     case 'photos':
-      return <PhotoGallery event={event} />;
+      return <PhotoGallery event={event} eventId={eventId} />;
     case 'timeline':
       return <Timeline timeline={event.timeline} />;
     case 'menu':
       return <Menu menu={event.menu} />;
     case 'guestbook':
-      return <Guestbook name={name} />;
+      return <Guestbook name={name} eventId={eventId} />;
     case 'requests':
-      return <SongRequests name={name} />;
+      return <SongRequests name={name} eventId={eventId} />;
     default:
       return (
         <div style={{ textAlign: 'center', padding: '32px', color: '#9ca3af' }}>

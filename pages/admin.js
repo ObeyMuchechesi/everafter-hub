@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const YOUR_USER_ID = '2b4afcb9-4075-42a5-a612-949496562698';
 const baseUrl = 'https://everafter-hub.vercel.app';
 
-export default function Admin() {
+export default function Admin({ initialRole = 'admin' }) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [role, setRole] = useState(initialRole || (router.query?.role === 'user' ? 'user' : 'admin'));
   const [activeTab, setActiveTab] = useState('events');
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -31,34 +34,75 @@ export default function Admin() {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
 
-  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '' });
+  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '' });
+  const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
   const [newGuest, setNewGuest] = useState({ full_name: '', table_number: '', dietary_requirements: '' });
   const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
   const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
   const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
 
+  useEffect(() => {
+    if (router.query?.role) {
+      setRole(router.query.role === 'user' ? 'user' : 'admin');
+    }
+  }, [router.query?.role]);
+
+  const isAdmin = currentUser?.role === 'admin' || role === 'admin';
+  const roleTheme = isAdmin
+    ? {
+        shell: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
+        primary: 'linear-gradient(to right, #f43f5e, #ec4899)',
+        accent: '#f43f5e',
+        glow: '#fff1f2',
+        badge: 'Admin access',
+        title: 'Admin Workspace',
+        description: 'Manage events, users, guests, and guest experience content.',
+      }
+    : {
+        shell: 'linear-gradient(135deg, #0f172a, #1d4ed8, #0ea5e9)',
+        primary: 'linear-gradient(to right, #2563eb, #0ea5e9)',
+        accent: '#2563eb',
+        glow: '#eff6ff',
+        badge: 'User access',
+        title: 'User Workspace',
+        description: 'View your assigned event and contribute to the guest experience.',
+      };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { data } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .eq('password', password)
-      .single();
-    
-    if (data) {
-      setCurrentUser(data);
+
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.user) {
+      const resolvedRole = result.user.role || (email.toLowerCase() === 'admin@everafter.com' ? 'admin' : 'user');
+      const user = { ...result.user, role: resolvedRole };
+      setCurrentUser(user);
+      setRole(resolvedRole);
       setLoggedIn(true);
-      loadEvents();
-      loadUsers();
+      loadEvents(user);
+      if (resolvedRole === 'admin') {
+        loadUsers();
+      }
     } else {
-      alert('Wrong email or password');
+      alert(result.error || 'Wrong email or password');
     }
   };
 
-  const loadEvents = async () => {
-    const { data } = await supabase.from('events').select('*').order('event_date', { ascending: true });
+  const loadEvents = async (user = currentUser) => {
+    let query = supabase.from('events').select('*').order('event_date', { ascending: true });
+
+    if (user && user.role !== 'admin') {
+      query = query.eq('user_id', user.id);
+    }
+
+    const { data } = await query;
     setEvents(data || []);
   };
 
@@ -126,27 +170,83 @@ export default function Admin() {
 
   const createEvent = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from('events').insert({ user_id: currentUser?.id || YOUR_USER_ID, ...newEvent });
-    if (!error) { 
-      setShowEventForm(false); 
-      setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '' }); 
-      loadEvents(); 
-      alert('Event created!');
-    } else {
-      alert('Error: ' + error.message);
+
+    try {
+      let assignedUserId = newEvent.assigned_user_id || '';
+
+      if (!assignedUserId) {
+        if (!newUserForEvent.email || !newUserForEvent.full_name || !newUserForEvent.password) {
+          alert('Choose an existing user or add a new user email, full name, and password for this event.');
+          return;
+        }
+
+        const userResponse = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: newUserForEvent.email,
+            full_name: newUserForEvent.full_name,
+            company_name: '',
+            phone: '',
+            password: newUserForEvent.password,
+          }),
+        });
+
+        const userResult = await userResponse.json();
+        if (!userResponse.ok || !userResult.user) {
+          alert(userResult.error || 'Unable to create user account');
+          return;
+        }
+
+        assignedUserId = userResult.user.id;
+      }
+
+      const eventPayload = {
+        ...newEvent,
+        user_id: assignedUserId || currentUser?.id || YOUR_USER_ID,
+      };
+      delete eventPayload.assigned_user_id;
+
+      const { data, error } = await supabase
+        .from('events')
+        .insert(eventPayload)
+        .select('*')
+        .single();
+
+      if (!error && data) {
+        setShowEventForm(false);
+        setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
+        setNewUserForEvent({ email: '', full_name: '', password: '' });
+        loadEvents(currentUser);
+        setSelectedEvent(data);
+        setQrEvent(data);
+        setShowQRModal(true);
+        alert('Event created and assigned to the selected user!');
+      } else {
+        alert('Error: ' + error.message);
+      }
+    } catch (error) {
+      console.error('Event creation failed', error);
+      alert('Error creating event');
     }
   };
 
   const createUser = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from('users').insert(newUser);
-    if (!error) { 
-      setShowUserForm(false); 
-      setNewUser({ email: '', full_name: '', company_name: '', phone: '', password: '' }); 
-      loadUsers(); 
+    const response = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser),
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      setShowUserForm(false);
+      setNewUser({ email: '', full_name: '', company_name: '', phone: '', password: '' });
+      loadUsers();
       alert('User added!');
     } else {
-      alert('Error: ' + error.message);
+      alert(result.error || 'Error creating user');
     }
   };
 
@@ -260,29 +360,38 @@ export default function Admin() {
 
   if (!loggedIn) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.shell }}>
         <div style={{ background: 'white', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
           <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '8px', fontSize: '28px' }}>EverAfter Hub</h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>Admin Login</p>
+          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>{role === 'user' ? 'User Login' : 'Admin Login'}</p>
+          <div style={{ background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, color: roleTheme.accent, padding: '10px 12px', borderRadius: '999px', textAlign: 'center', marginBottom: '16px', fontSize: '13px', fontWeight: 600 }}>
+            {roleTheme.title}
+          </div>
           <form onSubmit={handleLogin}>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '16px', boxSizing: 'border-box' }} required />
-            <button type="submit" style={{ width: '100%', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>Login</button>
+            <button type="submit" style={{ width: '100%', background: roleTheme.primary, color: 'white', padding: '14px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>Login</button>
           </form>
         </div>
       </div>
     );
   }
 
-  const tabs = ['events', 'users', 'guests', 'timeline', 'menu', 'photos', 'messages', 'songs'];
+  const tabs = (currentUser?.role === 'admin' || role === 'admin')
+    ? ['events', 'users', 'guests', 'timeline', 'menu', 'photos', 'messages', 'songs']
+    : ['events', 'guests', 'timeline', 'menu', 'photos', 'messages', 'songs'];
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
       <div style={{ background: 'white', padding: '16px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', margin: 0 }}>✨ EverAfter Admin</h1>
+        <div>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', margin: 0 }}>✨ EverAfter {isAdmin ? 'Admin' : 'User'} Dashboard</h1>
+          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '13px' }}>{roleTheme.description}</p>
+        </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '6px 10px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
           <span style={{ fontSize: '13px', color: '#6b7280' }}>{currentUser?.full_name}</span>
-          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🔑 Change Password</button>
+          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: roleTheme.primary, color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🔑 Change Password</button>
           <button onClick={() => setLoggedIn(false)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
         </div>
       </div>
@@ -339,7 +448,7 @@ export default function Admin() {
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 73px)' }}>
         <div style={{ width: '220px', background: 'white', padding: '20px', borderRight: '1px solid #e5e7eb' }}>
           {tabs.map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{ display: 'block', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? '#fff1f2' : 'transparent', color: activeTab === tab ? '#f43f5e' : '#4b5563' }}>
+            <button key={tab} onClick={() => setActiveTab(tab)} style={{ display: 'block', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563' }}>
               {tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}{tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}{tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}
             </button>
           ))}
@@ -351,7 +460,9 @@ export default function Admin() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Events</h2>
-                <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
+                {isAdmin && (
+                  <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
+                )}
               </div>
               {showEventForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
@@ -364,6 +475,17 @@ export default function Admin() {
                     <input type="date" value={newEvent.event_date} onChange={(e) => setNewEvent({...newEvent, event_date: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Venue" value={newEvent.venue} onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="URL slug" value={newEvent.slug} onChange={(e) => setNewEvent({...newEvent, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <select value={newEvent.assigned_user_id} onChange={(e) => setNewEvent({...newEvent, assigned_user_id: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', gridColumn: '1/-1' }}>
+                      <option value="">Create a new user account for this event</option>
+                      {users.map(user => <option key={user.id} value={user.id}>{user.full_name} ({user.email})</option>)}
+                    </select>
+                    {!newEvent.assigned_user_id && (
+                      <>
+                        <input placeholder="New user email" value={newUserForEvent.email} onChange={(e) => setNewUserForEvent({...newUserForEvent, email: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                        <input placeholder="New user full name" value={newUserForEvent.full_name} onChange={(e) => setNewUserForEvent({...newUserForEvent, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                        <input type="password" placeholder="New user password" value={newUserForEvent.password} onChange={(e) => setNewUserForEvent({...newUserForEvent, password: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                      </>
+                    )}
                     <button type="submit" style={{ gridColumn: '1/-1', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Create Event</button>
                   </form>
                 </div>
@@ -377,6 +499,7 @@ export default function Admin() {
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
                       <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
+                      <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>Assigned to: {users.find((u) => u.id === event.user_id)?.full_name || 'Unassigned'}</p>
                       <code style={{ fontSize: '11px', color: '#f43f5e' }}>event?id={event.slug}</code>
                     </div>
                   </div>
