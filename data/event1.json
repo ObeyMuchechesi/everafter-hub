@@ -1,0 +1,30 @@
+{
+  "id": "sarah-james-2026",
+  "couple": "Sarah & James",
+  "date": "June 14, 2026",
+  "venue": "The Grand Ballroom, Harare",
+  "guests": [
+    { "name": "Netsai Mukanwa", "table": 5, "diet": "vegetarian" },
+    { "name": "Tendai Chikosi", "table": 3, "diet": "" },
+    { "name": "Rudo Makoni", "table": 1, "diet": "gluten-free" },
+    { "name": "Simba Musariri", "table": 5, "diet": "" },
+    { "name": "Farai Zhou", "table": 7, "diet": "" }
+  ],
+  "timeline": [
+    { "time": "14:00", "event": "Ceremony", "location": "Main Hall" },
+    { "time": "15:30", "event": "Cocktail Hour", "location": "Garden Terrace" },
+    { "time": "17:00", "event": "Reception & Dinner", "location": "Grand Ballroom" },
+    { "time": "19:00", "event": "Cake Cutting", "location": "Grand Ballroom" },
+    { "time": "20:00", "event": "First Dance & Party", "location": "Grand Ballroom" }
+  ],
+  "menu": {
+    "starter": "Butternut Squash Soup",
+    "main": "Grilled Chicken with Roasted Vegetables",
+    "dessert": "Chocolate Lava Cake"
+  },
+  "photos": [
+    { "url": "https://picsum.photos/id/1015/400/300", "caption": "Mountain view" },
+    { "url": "https://picsum.photos/id/1047/400/300", "caption": "Flowers" },
+    { "url": "https://picsum.photos/id/106/400/300", "caption": "Couple" }
+  ]
+}
