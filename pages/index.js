@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { lookupGuest } from '../../../lib/guestLookup';
-import { getEventData } from '../../../lib/eventData';
+import { lookupGuest } from '../lib/guestLookup';
+import { getEventData } from '../lib/eventData';
 
 export default function EventLanding({ event }) {
   const [name, setName] = useState('');

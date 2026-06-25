@@ -1,12 +1,12 @@
-import { supabase } from '../../lib/supabase';
+import { query } from '../../lib/db';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { eventId, songTitle, requestedBy } = req.body;
-    await supabase.from('song_requests').insert({ event_id: eventId, song_title: songTitle, requested_by: requestedBy });
+    await query('INSERT INTO song_requests (event_id, song_title, requested_by) VALUES ($1, $2, $3)', [eventId, songTitle, requestedBy]);
     return res.json({ success: true });
   }
   const { eventId } = req.query;
-  const { data } = await supabase.from('song_requests').select('*').eq('event_id', eventId).order('votes', { ascending: false });
-  res.json(data || []);
+  const result = await query('SELECT * FROM song_requests WHERE event_id = $1 ORDER BY votes DESC, created_at DESC', [eventId]);
+  res.json(result.rows || []);
 }

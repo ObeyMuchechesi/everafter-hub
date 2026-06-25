@@ -1,12 +1,12 @@
-import { supabase } from '../../lib/supabase';
+import { query } from '../../lib/db';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { eventId, guestName, message } = req.body;
-    await supabase.from('guestbook').insert({ event_id: eventId, guest_name: guestName, message });
+    await query('INSERT INTO guestbook (event_id, guest_name, message) VALUES ($1, $2, $3)', [eventId, guestName, message]);
     return res.json({ success: true });
   }
   const { eventId } = req.query;
-  const { data } = await supabase.from('guestbook').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
-  res.json(data || []);
+  const result = await query('SELECT * FROM guestbook WHERE event_id = $1 ORDER BY created_at DESC', [eventId]);
+  res.json(result.rows || []);
 }
