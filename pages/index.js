@@ -9,6 +9,46 @@ export default function EventLanding({ event }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
+  if (!event) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)'
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '24px',
+          padding: '48px',
+          width: '100%',
+          maxWidth: '460px',
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
+        }}>
+          <h1 style={{ fontSize: '32px', fontFamily: 'Playfair Display, serif', marginBottom: '12px' }}>EverAfter Hub</h1>
+          <p style={{ color: '#6b7280', marginBottom: '24px' }}>Open your event link or visit the admin page to manage this experience.</p>
+          <button
+            onClick={() => router.push('/admin')}
+            style={{
+              background: 'linear-gradient(to right, #f43f5e, #ec4899)',
+              color: 'white',
+              padding: '12px 20px',
+              borderRadius: '9999px',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Go to Admin
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (router.isFallback) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)' }}>
@@ -155,15 +195,14 @@ export default function EventLanding({ event }) {
 
 export async function getServerSideProps({ params }) {
   try {
-    const event = await getEventData(params.eventId);
-    if (!event) {
-      return { notFound: true };
-    }
-    return { 
-      props: { event }
+    const event = params?.eventId ? await getEventData(params.eventId) : null;
+    return {
+      props: { event: event || null }
     };
   } catch (error) {
     console.error('Error loading event:', error);
-    return { notFound: true };
+    return {
+      props: { event: null }
+    };
   }
 }
