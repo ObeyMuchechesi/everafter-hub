@@ -14,6 +14,8 @@ export default function Admin({ initialRole = 'admin' }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [role, setRole] = useState(initialRole || (router.query?.role === 'user' ? 'user' : 'admin'));
   const [activeTab, setActiveTab] = useState('events');
+  const [isLoading, setIsLoading] = useState(false);
+  const [adminUserFilter, setAdminUserFilter] = useState('all');
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [users, setUsers] = useState([]);
@@ -35,9 +37,12 @@ export default function Admin({ initialRole = 'admin' }) {
   const [editingMenu, setEditingMenu] = useState(null);
 
   const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
-  const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '' });
+  const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
+  const [editingUser, setEditingUser] = useState(null);
   const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
   const [newGuest, setNewGuest] = useState({ full_name: '', table_number: '', dietary_requirements: '' });
+  const [bulkGuestsText, setBulkGuestsText] = useState('');
+  const [isBulkUpload, setIsBulkUpload] = useState(false);
   const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
   const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
   const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
@@ -71,6 +76,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     const response = await fetch('/api/admin/login', {
       method: 'POST',
@@ -93,18 +99,29 @@ export default function Admin({ initialRole = 'admin' }) {
     } else {
       alert(result.error || 'Wrong email or password');
     }
+    setIsLoading(false);
   };
 
-  const loadEvents = async (user = currentUser) => {
+  const loadEvents = async (user = currentUser, filterId = adminUserFilter) => {
+    setIsLoading(true);
     let query = supabase.from('events').select('*').order('event_date', { ascending: true });
 
     if (user && user.role !== 'admin') {
       query = query.eq('user_id', user.id);
+    } else if (filterId !== 'all') {
+      query = query.eq('user_id', filterId);
     }
 
     const { data } = await query;
     setEvents(data || []);
+    setIsLoading(false);
   };
+
+  useEffect(() => {
+    if (loggedIn) {
+      loadEvents(currentUser, adminUserFilter);
+    }
+  }, [adminUserFilter]);
 
   const loadUsers = async () => {
     const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false });
@@ -245,9 +262,40 @@ export default function Admin({ initialRole = 'admin' }) {
       setNewUser({ email: '', full_name: '', company_name: '', phone: '', password: '' });
       loadUsers();
       alert('User added!');
-    } else {
       alert(result.error || 'Error creating user');
     }
+  };
+
+  const updateUser = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingUser),
+    });
+    if (response.ok) {
+      setEditingUser(null);
+      setShowUserForm(false);
+      loadUsers();
+      alert('User updated!');
+    } else {
+      const result = await response.json();
+      alert(result.error || 'Error updating user');
+    }
+    setIsLoading(false);
+  };
+
+  const deleteUser = async (id) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    setIsLoading(true);
+    const response = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    if (response.ok) {
+      loadUsers();
+    } else {
+      alert('Error deleting user');
+    }
+    setIsLoading(false);
   };
 
   const changePassword = async (e) => {
@@ -268,6 +316,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const addGuest = async (e) => {
     e.preventDefault();
     if (!selectedEvent) return;
+    setIsLoading(true);
     const { error } = await supabase.from('guests').insert({ 
       event_id: selectedEvent.id, 
       full_name: newGuest.full_name,
@@ -281,6 +330,47 @@ export default function Admin({ initialRole = 'admin' }) {
     } else {
       alert('Error: ' + error.message);
     }
+    setIsLoading(false);
+  };
+
+  const handleBulkUpload = async (e) => {
+    e.preventDefault();
+    if (!selectedEvent || !bulkGuestsText.trim()) return;
+    setIsLoading(true);
+
+    const lines = bulkGuestsText.split('\n');
+    const guestsToInsert = [];
+    
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const parts = line.split(',').map(p => p.trim());
+      if (parts.length > 0) {
+        let name = parts.length >= 2 ? `${parts[0]} ${parts[1]}`.trim() : parts[0];
+        let tNum = parseInt(parts.length >= 3 ? parts[2] : (parts[1] || '0')) || 0;
+        let diet = parts.length >= 4 ? parts[3] : '';
+
+        guestsToInsert.push({
+          event_id: selectedEvent.id,
+          full_name: name,
+          table_number: tNum,
+          dietary_requirements: diet
+        });
+      }
+    }
+
+    if (guestsToInsert.length > 0) {
+      const { error } = await supabase.from('guests').insert(guestsToInsert);
+      if (!error) {
+        setShowGuestForm(false);
+        setBulkGuestsText('');
+        setIsBulkUpload(false);
+        loadGuests(selectedEvent.id);
+        alert(`${guestsToInsert.length} guests uploaded successfully!`);
+      } else {
+        alert('Error during bulk upload: ' + error.message);
+      }
+    }
+    setIsLoading(false);
   };
 
   const addTimeline = async (e) => {
@@ -396,6 +486,12 @@ export default function Admin({ initialRole = 'admin' }) {
         </div>
       </div>
 
+      {isLoading && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ fontSize: '40px', animation: 'spin 1s linear infinite' }}>⏳</div>
+        </div>
+      )}
+
       {showQRModal && qrEvent && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: 'white', padding: '32px', borderRadius: '20px', textAlign: 'center', maxWidth: '420px', width: '90%' }}>
@@ -460,9 +556,17 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Events</h2>
-                {isAdmin && (
-                  <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
-                )}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {isAdmin && (
+                    <select value={adminUserFilter} onChange={(e) => setAdminUserFilter(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
+                      <option value="all">All Users</option>
+                      {users.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                    </select>
+                  )}
+                  {isAdmin && (
+                    <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
+                  )}
+                </div>
               </div>
               {showEventForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
@@ -516,24 +620,35 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Admin Users</h2>
-                <button onClick={() => setShowUserForm(!showUserForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add User</button>
+                <button onClick={() => { setShowUserForm(!showUserForm); setEditingUser(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showUserForm && !editingUser ? 'Cancel' : '+ Add User'}</button>
               </div>
               {showUserForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
-                  <form onSubmit={createUser} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
-                    <input placeholder="Email" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Full Name" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Company" value={newUser.company_name} onChange={(e) => setNewUser({...newUser, company_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                    <input placeholder="Phone" value={newUser.phone} onChange={(e) => setNewUser({...newUser, phone: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                    <input type="password" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add User</button>
+                  <h4 style={{ marginBottom: '12px' }}>{editingUser ? 'Edit User' : 'Add New User'}</h4>
+                  <form onSubmit={editingUser ? updateUser : createUser} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
+                    <input placeholder="Email" value={editingUser ? editingUser.email : newUser.email} onChange={(e) => editingUser ? setEditingUser({...editingUser, email: e.target.value}) : setNewUser({...newUser, email: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Full Name" value={editingUser ? editingUser.full_name : newUser.full_name} onChange={(e) => editingUser ? setEditingUser({...editingUser, full_name: e.target.value}) : setNewUser({...newUser, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Company" value={editingUser ? editingUser.company_name : newUser.company_name} onChange={(e) => editingUser ? setEditingUser({...editingUser, company_name: e.target.value}) : setNewUser({...newUser, company_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <input placeholder="Phone" value={editingUser ? editingUser.phone : newUser.phone} onChange={(e) => editingUser ? setEditingUser({...editingUser, phone: e.target.value}) : setNewUser({...newUser, phone: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                    <select value={editingUser ? editingUser.role : newUser.role} onChange={(e) => editingUser ? setEditingUser({...editingUser, role: e.target.value}) : setNewUser({...newUser, role: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <input type="password" placeholder={editingUser ? "New Password (optional)" : "Password"} value={editingUser ? (editingUser.password || '') : newUser.password} onChange={(e) => editingUser ? setEditingUser({...editingUser, password: e.target.value}) : setNewUser({...newUser, password: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required={!editingUser} />
+                    <button type="submit" style={{ gridColumn: '1/-1', background: editingUser ? '#f59e0b' : '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>{editingUser ? 'Update User' : 'Add User'}</button>
                   </form>
                 </div>
               )}
               {users.map(user => (
-                <div key={user.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                  <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name}</p>
-                  <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{user.email} • {user.company_name || 'N/A'} • {user.phone || 'N/A'}</p>
+                <div key={user.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name} <span style={{fontSize:'12px', color:'#9ca3af', fontWeight: 400}}>({user.role})</span></p>
+                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{user.email} • {user.company_name || 'N/A'} • {user.phone || 'N/A'}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => { setEditingUser(user); setShowUserForm(true); }} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Edit</button>
+                    <button onClick={() => deleteUser(user.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -543,16 +658,31 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Guests — {selectedEvent.event_name}</h2>
-                <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => { setIsBulkUpload(true); setShowGuestForm(true); }} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e5e7eb', cursor: 'pointer', background: 'white', color: '#4b5563', fontWeight: 600 }}>Bulk Upload</button>
+                  <button onClick={() => { setIsBulkUpload(false); setShowGuestForm(true); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
+                </div>
               </div>
               {showGuestForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
-                  <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr' }}>
-                    <input placeholder="Full Name" value={newGuest.full_name} onChange={(e) => setNewGuest({...newGuest, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                    <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
-                  </form>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <h4 style={{ margin: 0 }}>{isBulkUpload ? 'Bulk Upload Guests' : 'Add New Guest'}</h4>
+                    <button onClick={() => setShowGuestForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>Cancel</button>
+                  </div>
+                  {isBulkUpload ? (
+                    <form onSubmit={handleBulkUpload} style={{ display: 'grid', gap: '10px' }}>
+                      <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Format each line as: First Name, Last Name, Table Number, Dietary Requirements</p>
+                      <textarea placeholder="e.g. John, Doe, 5, Vegan" value={bulkGuestsText} onChange={(e) => setBulkGuestsText(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', height: '120px', fontFamily: 'monospace', fontSize: '13px' }} required />
+                      <button type="submit" style={{ background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Upload Guests</button>
+                    </form>
+                  ) : (
+                    <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr' }}>
+                      <input placeholder="Full Name" value={newGuest.full_name} onChange={(e) => setNewGuest({...newGuest, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                      <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                      <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                      <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
+                    </form>
+                  )}
                 </div>
               )}
               {guests.map(guest => (
