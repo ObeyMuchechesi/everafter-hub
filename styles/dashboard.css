@@ -20,6 +20,7 @@ body {
 .dashboard-layout {
   display: grid;
   height: 100vh;
+  height: 100dvh;
   grid-template-columns: 1fr;
   grid-template-rows: auto 1fr auto;
   grid-template-areas: 

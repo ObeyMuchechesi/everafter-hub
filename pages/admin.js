@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Key } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -528,8 +529,8 @@ export default function Admin({ initialRole = 'admin' }) {
         </motion.div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '4px 8px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
-          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: roleTheme.primary, color: 'white', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }} title="Change Password">🔑</button>
-          <button onClick={() => { setLoggedIn(false); localStorage.removeItem('everafter_admin_user'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }} title="Logout">🚪</button>
+          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.primary, color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(244,63,94,0.3)' }} title="Change Password"><Key size={18} strokeWidth={2.5} /></button>
+          <button onClick={() => { setLoggedIn(false); localStorage.removeItem('everafter_admin_user'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><LogOut size={18} strokeWidth={2.5} /></button>
         </div>
       </header>
 
