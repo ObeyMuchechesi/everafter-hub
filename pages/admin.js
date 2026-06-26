@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -459,16 +460,35 @@ export default function Admin({ initialRole = 'admin' }) {
 
   if (!loggedIn) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.shell }}>
-        <div style={{ background: 'white', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+      <div className="login-background" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{ background: 'white', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
+        >
           <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '8px', fontSize: '28px' }}>EverAfter Hub</h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>User Login Workspace</p>
+          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '32px', fontSize: '14px' }}>User Login Workspace</p>
           <form onSubmit={handleLogin}>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '16px', boxSizing: 'border-box' }} required />
-            <button type="submit" style={{ width: '100%', background: roleTheme.primary, color: 'white', padding: '14px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>Login</button>
+            <div className="floating-input-group">
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder=" " id="login-email" required />
+              <label htmlFor="login-email">Email</label>
+            </div>
+            <div className="floating-input-group">
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder=" " id="login-password" required />
+              <label htmlFor="login-password">Password</label>
+            </div>
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit" 
+              style={{ width: '100%', background: roleTheme.primary, color: 'white', padding: '16px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer', marginTop: '8px' }}
+            >
+              {isLoading ? 'Authenticating...' : 'Login'}
+            </motion.button>
           </form>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -500,19 +520,18 @@ export default function Admin({ initialRole = 'admin' }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
-      <div style={{ background: 'white', padding: '16px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', margin: 0 }}>✨ EverAfter {isAdmin ? 'Admin' : 'User'} Dashboard</h1>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '13px' }}>{roleTheme.description}</p>
+    <div className="dashboard-layout">
+      <header className="dashboard-header">
+        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0 }}>✨ EverAfter {isAdmin ? 'Admin' : 'User'}</h1>
+          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '11px' }}>{roleTheme.description}</p>
+        </motion.div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span style={{ fontSize: '11px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '4px 8px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
+          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: roleTheme.primary, color: 'white', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }} title="Change Password">🔑</button>
+          <button onClick={() => { setLoggedIn(false); localStorage.removeItem('everafter_admin_user'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }} title="Logout">🚪</button>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '6px 10px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
-          <span style={{ fontSize: '13px', color: '#6b7280' }}>{currentUser?.full_name}</span>
-          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: roleTheme.primary, color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🔑 Change Password</button>
-          <button onClick={() => { setLoggedIn(false); localStorage.removeItem('everafter_admin_user'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
-        </div>
-      </div>
+      </header>
 
       {isLoading && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
@@ -561,7 +580,7 @@ export default function Admin({ initialRole = 'admin' }) {
               </select>
               <input type="password" placeholder="New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" style={{ flex: 1, background: '#f59e0b', color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Update Password</button>
+                <button type="submit" style={{ flex: 1, background: '#f59e0b', color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Update</button>
                 <button type="button" onClick={() => setShowPasswordForm(false)} style={{ flex: 1, background: '#e5e7eb', color: '#4b5563', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
@@ -569,25 +588,45 @@ export default function Admin({ initialRole = 'admin' }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 73px)' }}>
-        <div style={{ width: '220px', background: 'white', padding: '20px', borderRight: '1px solid #e5e7eb' }}>
-          {selectedEvent && (
-            <div style={{ marginBottom: '16px', padding: '12px', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecdd3' }}>
-              <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', color: '#f43f5e', fontWeight: 800, letterSpacing: '1px' }}>Managing Event</p>
-              <p style={{ margin: '4px 0 0 0', fontWeight: 600, color: '#1f2937', fontSize: '14px', lineHeight: '1.2' }}>{selectedEvent.event_name}</p>
-            </div>
-          )}
+      <nav className="dashboard-nav hide-scrollbar">
+        {selectedEvent && (
+          <div style={{ marginBottom: '16px', padding: '8px', background: '#fff1f2', borderRadius: '8px', border: '1px solid #fecdd3', textAlign: 'center', minWidth: '80px' }}>
+            <p style={{ margin: 0, fontSize: '9px', textTransform: 'uppercase', color: '#f43f5e', fontWeight: 800 }}>Event</p>
+            <p style={{ margin: '2px 0 0 0', fontWeight: 600, color: '#1f2937', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedEvent.event_name}</p>
+          </div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', gap: '8px' }} className="nav-items-container">
           {tabs.map(tab => (
-            <button key={tab} onClick={() => handleTabClick(tab)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563' }}>
-              <span>{tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}{tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}{tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}</span>
-              {selectedEvent && eventTabs.includes(tab) && (
-                <span style={{ background: activeTab === tab ? roleTheme.accent : '#e5e7eb', color: activeTab === tab ? 'white' : '#4b5563', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>{getTabCount(tab)}</span>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              key={tab} 
+              onClick={() => handleTabClick(tab)} 
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', minWidth: '60px' }}
+            >
+              <span style={{ fontSize: '20px', marginBottom: '4px' }}>
+                {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}{tab === 'songs' && '🎵'}
+              </span>
+              <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{tab}</span>
+              {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
+                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', fontSize: '10px', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 700, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                  {getTabCount(tab)}
+                </span>
               )}
-            </button>
+            </motion.button>
           ))}
         </div>
+      </nav>
 
-        <div style={{ flex: 1, padding: '24px' }}>
+      <main className="dashboard-main">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
           
           {activeTab === 'events' && (
             <div>
@@ -826,8 +865,9 @@ export default function Admin({ initialRole = 'admin' }) {
           {['guests','timeline','menu','photos','messages','songs'].includes(activeTab) && !selectedEvent && (
             <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}><p style={{ fontSize: '40px' }}>👈</p><p>Select an event from the Events tab first</p></div>
           )}
-        </div>
-      </div>
+          </motion.div>
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
