@@ -195,14 +195,14 @@ export default function EventPage() {
         </header>
         
         <nav className="dashboard-nav hide-scrollbar">
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', gap: '8px', width: '100%', justifyContent: 'space-around' }} className="nav-items-container">
+          <div className="nav-items-container">
             {tabs.map(t => (
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 key={t} 
                 onClick={() => setActiveTab(t)} 
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: activeTab === t ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'transparent', color: activeTab === t ? 'white' : '#4b5563', position: 'relative', minWidth: '60px' }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === t ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'white', color: activeTab === t ? 'white' : '#4b5563', position: 'relative', border: activeTab === t ? '2px solid transparent' : '1px solid #e5e7eb', boxShadow: activeTab === t ? '0 4px 12px rgba(244,63,94,0.3)' : '0 2px 4px rgba(0,0,0,0.02)' }}
               >
                 <span style={{ fontSize: '20px', marginBottom: '4px' }}>
                   {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'songs' && '🎵'}

@@ -590,19 +590,19 @@ export default function Admin({ initialRole = 'admin' }) {
 
       <nav className="dashboard-nav hide-scrollbar">
         {selectedEvent && (
-          <div style={{ marginBottom: '16px', padding: '8px', background: '#fff1f2', borderRadius: '8px', border: '1px solid #fecdd3', textAlign: 'center', minWidth: '80px' }}>
-            <p style={{ margin: 0, fontSize: '9px', textTransform: 'uppercase', color: '#f43f5e', fontWeight: 800 }}>Event</p>
-            <p style={{ margin: '2px 0 0 0', fontWeight: 600, color: '#1f2937', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedEvent.event_name}</p>
+          <div style={{ marginBottom: '16px', padding: '8px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', borderRadius: '12px', textAlign: 'center', color: 'white', boxShadow: '0 4px 10px rgba(244,63,94,0.2)' }}>
+            <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Managing Event</p>
+            <p style={{ margin: '4px 0 0 0', fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedEvent.event_name}</p>
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', gap: '8px' }} className="nav-items-container">
+        <div className="nav-items-container">
           {tabs.map(tab => (
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               key={tab} 
               onClick={() => handleTabClick(tab)} 
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8px 12px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', minWidth: '60px' }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
             >
               <span style={{ fontSize: '20px', marginBottom: '4px' }}>
                 {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}{tab === 'songs' && '🎵'}
