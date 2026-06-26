@@ -37,6 +37,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [editingMenu, setEditingMenu] = useState(null);
 
   const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
+  const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
   const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' });
