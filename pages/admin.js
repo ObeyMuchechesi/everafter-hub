@@ -433,39 +433,28 @@ export default function Admin({ initialRole = 'admin' }) {
     if (!file) return;
 
     setUploadingPhoto(true);
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${selectedEvent.id}-${Date.now()}.${fileExt}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('event-photos')
-      .upload(fileName, file);
 
-    if (uploadError) {
-      alert('Error uploading photo: ' + uploadError.message);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
+      const { error: dbError } = await supabase.from('photos').insert({
+        event_id: selectedEvent.id,
+        image_url: base64String,
+        caption: photoCaption,
+        uploaded_by: currentUser?.full_name || 'Admin',
+        is_approved: true
+      });
+
+      if (!dbError) {
+        setPhotoCaption('');
+        loadPhotos(selectedEvent.id);
+        e.target.value = ''; // Reset file input
+      } else {
+        alert('Error saving photo record: ' + dbError.message);
+      }
       setUploadingPhoto(false);
-      return;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('event-photos')
-      .getPublicUrl(fileName);
-
-    const { error: dbError } = await supabase.from('photos').insert({
-      event_id: selectedEvent.id,
-      image_url: publicUrlData.publicUrl,
-      caption: photoCaption,
-      uploaded_by: currentUser?.full_name || 'Admin',
-      is_approved: true
-    });
-
-    if (!dbError) {
-      setPhotoCaption('');
-      loadPhotos(selectedEvent.id);
-      e.target.value = ''; // Reset file input
-    } else {
-      alert('Error saving photo record: ' + dbError.message);
-    }
-    setUploadingPhoto(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   if (!loggedIn) {
@@ -791,7 +780,20 @@ export default function Admin({ initialRole = 'admin' }) {
                   <input type="text" placeholder="Caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                   <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600, display: 'inline-block' }}>
                     {uploadingPhoto ? 'Uploading...' : 'Choose File & Upload'}
-                    <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploadingPhoto} style={{ display: 'none' }} />
+                    <input type="file" accept="image/*" onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setUploadingPhoto(true);
+                        const reader = new FileReader();
+                        reader.onloadend = async () => {
+                          const base64 = reader.result;
+                          await uploadPhotoToBase64(base64, photoCaption);
+                          setUploadingPhoto(false);
+                          setPhotoCaption('');
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} disabled={uploadingPhoto} style={{ display: 'none' }} />
                   </label>
                 </div>
               </div>

@@ -132,42 +132,32 @@ export default function EventPage() {
     if (!file) return;
 
     setUploadingPhoto(true);
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${event.id}-${Date.now()}.${fileExt}`;
     
-    const { error: uploadError } = await supabase.storage
-      .from('event-photos')
-      .upload(fileName, file);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
 
-    if (uploadError) {
-      alert('Error uploading photo: ' + uploadError.message);
+      const { error: dbError } = await supabase.from('photos').insert({
+        event_id: event.id,
+        image_url: base64String,
+        caption: photoCaption,
+        uploaded_by: guest?.name || 'Guest',
+        is_approved: true // Automatically approved for now, adjust based on preferences
+      });
+
+      if (!dbError) {
+        setPhotoCaption('');
+        // Reload photos
+        const { data: newPhotos } = await supabase.from('photos').select('*').eq('event_id', event.id).eq('is_approved', true).order('created_at', { ascending: false });
+        setPhotos(newPhotos || []);
+        e.target.value = '';
+        alert('Photo uploaded successfully!');
+      } else {
+        alert('Error saving photo record: ' + dbError.message);
+      }
       setUploadingPhoto(false);
-      return;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('event-photos')
-      .getPublicUrl(fileName);
-
-    const { error: dbError } = await supabase.from('photos').insert({
-      event_id: event.id,
-      image_url: publicUrlData.publicUrl,
-      caption: photoCaption,
-      uploaded_by: guest?.name || 'Guest',
-      is_approved: true // Automatically approved for now, adjust based on preferences
-    });
-
-    if (!dbError) {
-      setPhotoCaption('');
-      // Reload photos
-      const { data: newPhotos } = await supabase.from('photos').select('*').eq('event_id', event.id).eq('is_approved', true).order('created_at', { ascending: false });
-      setPhotos(newPhotos || []);
-      e.target.value = '';
-      alert('Photo uploaded successfully!');
-    } else {
-      alert('Error saving photo record: ' + dbError.message);
-    }
-    setUploadingPhoto(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   if (loading) {
