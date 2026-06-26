@@ -54,6 +54,22 @@ export default function Admin({ initialRole = 'admin' }) {
     }
   }, [router.query?.role]);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('everafter_admin_user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        setCurrentUser(user);
+        setRole(user.role);
+        setLoggedIn(true);
+        loadEvents(user);
+        if (user.role === 'admin') loadUsers();
+      } catch (e) {
+        console.error("Failed to parse stored user", e);
+      }
+    }
+  }, []);
+
   const isAdmin = currentUser?.role === 'admin' || role === 'admin';
   const roleTheme = isAdmin
     ? {
@@ -93,6 +109,7 @@ export default function Admin({ initialRole = 'admin' }) {
       setCurrentUser(user);
       setRole(resolvedRole);
       setLoggedIn(true);
+      localStorage.setItem('everafter_admin_user', JSON.stringify(user));
       loadEvents(user);
       if (resolvedRole === 'admin') {
         loadUsers();
@@ -507,7 +524,7 @@ export default function Admin({ initialRole = 'admin' }) {
           <span style={{ fontSize: '13px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '6px 10px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
           <span style={{ fontSize: '13px', color: '#6b7280' }}>{currentUser?.full_name}</span>
           <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ background: roleTheme.primary, color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🔑 Change Password</button>
-          <button onClick={() => setLoggedIn(false)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
+          <button onClick={() => { setLoggedIn(false); localStorage.removeItem('everafter_admin_user'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
         </div>
       </div>
 
@@ -568,6 +585,12 @@ export default function Admin({ initialRole = 'admin' }) {
 
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 73px)' }}>
         <div style={{ width: '220px', background: 'white', padding: '20px', borderRight: '1px solid #e5e7eb' }}>
+          {selectedEvent && (
+            <div style={{ marginBottom: '16px', padding: '12px', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecdd3' }}>
+              <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', color: '#f43f5e', fontWeight: 800, letterSpacing: '1px' }}>Managing Event</p>
+              <p style={{ margin: '4px 0 0 0', fontWeight: 600, color: '#1f2937', fontSize: '14px', lineHeight: '1.2' }}>{selectedEvent.event_name}</p>
+            </div>
+          )}
           {tabs.map(tab => (
             <button key={tab} onClick={() => handleTabClick(tab)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563' }}>
               <span>{tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}{tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}{tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}</span>

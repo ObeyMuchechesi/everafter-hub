@@ -26,7 +26,17 @@ export default function EventPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    if (id) loadEvent(id);
+    if (id) {
+      loadEvent(id);
+      const storedGuest = localStorage.getItem(`everafter_guest_${id}`);
+      if (storedGuest) {
+        try {
+          setGuest(JSON.parse(storedGuest));
+        } catch (e) {
+          console.error('Failed to parse guest from localStorage', e);
+        }
+      }
+    }
   }, [id, router.isReady]);
 
   async function loadEvent(slug) {
@@ -75,7 +85,11 @@ export default function EventPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const found = lookupGuest(event.guests, firstName, lastName);
-    if (found) { setGuest(found); setError(''); }
+    if (found) { 
+      setGuest(found); 
+      setError(''); 
+      localStorage.setItem(`everafter_guest_${id}`, JSON.stringify(found));
+    }
     else { setError('Name not found. Please check your spelling.'); }
   };
 
@@ -182,7 +196,7 @@ export default function EventPage() {
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)' }}>
         <div style={{ padding: '20px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
           <h2 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '20px' }}>{event.couple}</h2>
-          <button onClick={() => { setGuest(null); setFirstName(''); setLastName(''); }} style={{ background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Sign Out</button>
+          <button onClick={() => { setGuest(null); setFirstName(''); setLastName(''); localStorage.removeItem(`everafter_guest_${id}`); }} style={{ background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Sign Out</button>
         </div>
         
         <div style={{ display: 'flex', overflowX: 'auto', padding: '10px 20px', background: 'white', gap: '8px', borderBottom: '1px solid #e5e7eb', WebkitOverflowScrolling: 'touch' }}>
