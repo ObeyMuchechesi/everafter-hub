@@ -44,6 +44,9 @@ export default function Admin({ initialRole = 'admin' }) {
   const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
   const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
   const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
+  
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoCaption, setPhotoCaption] = useState('');
 
   useEffect(() => {
     if (router.query?.role) {
@@ -407,6 +410,47 @@ export default function Admin({ initialRole = 'admin' }) {
     if (selectedEvent) loadPhotos(selectedEvent.id);
   };
 
+  const handlePhotoUpload = async (e) => {
+    if (!selectedEvent) return;
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${selectedEvent.id}-${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('event-photos')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert('Error uploading photo: ' + uploadError.message);
+      setUploadingPhoto(false);
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('event-photos')
+      .getPublicUrl(fileName);
+
+    const { error: dbError } = await supabase.from('photos').insert({
+      event_id: selectedEvent.id,
+      image_url: publicUrlData.publicUrl,
+      caption: photoCaption,
+      uploaded_by: currentUser?.full_name || 'Admin',
+      is_approved: true
+    });
+
+    if (!dbError) {
+      setPhotoCaption('');
+      loadPhotos(selectedEvent.id);
+      e.target.value = ''; // Reset file input
+    } else {
+      alert('Error saving photo record: ' + dbError.message);
+    }
+    setUploadingPhoto(false);
+  };
+
   if (!loggedIn) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.shell }}>
@@ -426,9 +470,31 @@ export default function Admin({ initialRole = 'admin' }) {
     );
   }
 
-  const tabs = (currentUser?.role === 'admin' || role === 'admin')
-    ? ['events', 'users', 'guests', 'timeline', 'menu', 'photos', 'messages', 'songs']
-    : ['events', 'guests', 'timeline', 'menu', 'photos', 'messages', 'songs'];
+  const adminBaseTabs = ['events', 'users'];
+  const userBaseTabs = ['events'];
+  const baseTabs = (currentUser?.role === 'admin' || role === 'admin') ? adminBaseTabs : userBaseTabs;
+  const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'songs'];
+  const tabs = selectedEvent ? [...baseTabs, ...eventTabs] : baseTabs;
+
+  const handleTabClick = (tab) => {
+    if (tab === 'events' || tab === 'users') {
+      setSelectedEvent(null);
+    }
+    setActiveTab(tab);
+  };
+
+  const getTabCount = (tab) => {
+    if (!selectedEvent) return 0;
+    switch(tab) {
+      case 'guests': return guests.length;
+      case 'timeline': return timeline.length;
+      case 'menu': return menu.length;
+      case 'photos': return photos.length;
+      case 'messages': return messages.length;
+      case 'songs': return songs.length;
+      default: return 0;
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
@@ -503,8 +569,11 @@ export default function Admin({ initialRole = 'admin' }) {
       <div style={{ display: 'flex', minHeight: 'calc(100vh - 73px)' }}>
         <div style={{ width: '220px', background: 'white', padding: '20px', borderRight: '1px solid #e5e7eb' }}>
           {tabs.map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{ display: 'block', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563' }}>
-              {tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}{tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}{tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}
+            <button key={tab} onClick={() => handleTabClick(tab)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '12px 16px', marginBottom: '4px', borderRadius: '10px', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 500, fontSize: '14px', textTransform: 'capitalize', background: activeTab === tab ? roleTheme.glow : 'transparent', color: activeTab === tab ? roleTheme.accent : '#4b5563' }}>
+              <span>{tab === 'events' && '🎉 '}{tab === 'users' && '👤 '}{tab === 'guests' && '👥 '}{tab === 'timeline' && '⏱ '}{tab === 'menu' && '🍽 '}{tab === 'photos' && '📸 '}{tab === 'messages' && '💬 '}{tab === 'songs' && '🎵 '}{tab}</span>
+              {selectedEvent && eventTabs.includes(tab) && (
+                <span style={{ background: activeTab === tab ? roleTheme.accent : '#e5e7eb', color: activeTab === tab ? 'white' : '#4b5563', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>{getTabCount(tab)}</span>
+              )}
             </button>
           ))}
         </div>
@@ -579,37 +648,23 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Admin Users</h2>
-                <button onClick={() => { setShowUserForm(!showUserForm); setEditingUser(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showUserForm && !editingUser ? 'Cancel' : '+ Add User'}</button>
               </div>
-              {showUserForm && (
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
-                  <h4 style={{ marginBottom: '12px' }}>{editingUser ? 'Edit User' : 'Add New User'}</h4>
-                  <form onSubmit={editingUser ? updateUser : createUser} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
-                    <input placeholder="Email" value={editingUser ? editingUser.email : newUser.email} onChange={(e) => editingUser ? setEditingUser({...editingUser, email: e.target.value}) : setNewUser({...newUser, email: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Full Name" value={editingUser ? editingUser.full_name : newUser.full_name} onChange={(e) => editingUser ? setEditingUser({...editingUser, full_name: e.target.value}) : setNewUser({...newUser, full_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Company" value={editingUser ? editingUser.company_name : newUser.company_name} onChange={(e) => editingUser ? setEditingUser({...editingUser, company_name: e.target.value}) : setNewUser({...newUser, company_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                    <input placeholder="Phone" value={editingUser ? editingUser.phone : newUser.phone} onChange={(e) => editingUser ? setEditingUser({...editingUser, phone: e.target.value}) : setNewUser({...newUser, phone: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                    <select value={editingUser ? editingUser.role : newUser.role} onChange={(e) => editingUser ? setEditingUser({...editingUser, role: e.target.value}) : setNewUser({...newUser, role: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    <input type="password" placeholder={editingUser ? "New Password (optional)" : "Password"} value={editingUser ? (editingUser.password || '') : newUser.password} onChange={(e) => editingUser ? setEditingUser({...editingUser, password: e.target.value}) : setNewUser({...newUser, password: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required={!editingUser} />
-                    <button type="submit" style={{ gridColumn: '1/-1', background: editingUser ? '#f59e0b' : '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>{editingUser ? 'Update User' : 'Add User'}</button>
-                  </form>
-                </div>
-              )}
-              {users.map(user => (
-                <div key={user.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name} <span style={{fontSize:'12px', color:'#9ca3af', fontWeight: 400}}>({user.role})</span></p>
-                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{user.email} • {user.company_name || 'N/A'} • {user.phone || 'N/A'}</p>
+              {users.map(user => {
+                const managingEvents = events.filter(e => e.user_id === user.id);
+                const eventNames = managingEvents.map(e => e.event_name).join(', ') || 'No events assigned';
+                return (
+                  <div key={user.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name} <span style={{fontSize:'12px', color:'#9ca3af', fontWeight: 400}}>({user.role})</span></p>
+                      <p style={{ color: '#4b5563', fontSize: '13px', margin: '4px 0 0 0', fontWeight: 500 }}>Events: {eventNames}</p>
+                      <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>{user.email} • {user.phone || 'N/A'}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => deleteUser(user.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => { setEditingUser(user); setShowUserForm(true); }} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Edit</button>
-                    <button onClick={() => deleteUser(user.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -704,7 +759,19 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'photos' && selectedEvent && (
             <div>
-              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photos — {selectedEvent.event_name}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Photos — {selectedEvent.event_name}</h2>
+              </div>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <h4 style={{ marginBottom: '12px' }}>Upload New Photo</h4>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input type="text" placeholder="Caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                  <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600, display: 'inline-block' }}>
+                    {uploadingPhoto ? 'Uploading...' : 'Choose File & Upload'}
+                    <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploadingPhoto} style={{ display: 'none' }} />
+                  </label>
+                </div>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.map(photo => (
                   <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>

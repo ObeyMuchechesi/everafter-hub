@@ -19,6 +19,9 @@ export default function EventPage() {
   const [newSong, setNewSong] = useState('');
   const [messages, setMessages] = useState([]);
   const [songs, setSongs] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoCaption, setPhotoCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -42,12 +45,14 @@ export default function EventPage() {
     const { data: menuItems } = await supabase.from('menu_items').select('*').eq('event_id', eventData.id);
     const { data: guestMessages } = await supabase.from('guestbook').select('*').eq('event_id', eventData.id).order('created_at', { ascending: false });
     const { data: songReqs } = await supabase.from('song_requests').select('*').eq('event_id', eventData.id).order('votes', { ascending: false });
+    const { data: eventPhotos } = await supabase.from('photos').select('*').eq('event_id', eventData.id).eq('is_approved', true).order('created_at', { ascending: false });
 
     const menu = {};
     if (menuItems) menuItems.forEach(item => { menu[item.course_type] = item.dish_name; });
 
     setMessages(guestMessages || []);
     setSongs(songReqs || []);
+    setPhotos(eventPhotos || []);
 
     setEvent({
       id: eventData.id,
@@ -105,6 +110,50 @@ export default function EventPage() {
       setNewSong('');
     }
     setIsSubmitting(false);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    if (!event) return;
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${event.id}-${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('event-photos')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert('Error uploading photo: ' + uploadError.message);
+      setUploadingPhoto(false);
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('event-photos')
+      .getPublicUrl(fileName);
+
+    const { error: dbError } = await supabase.from('photos').insert({
+      event_id: event.id,
+      image_url: publicUrlData.publicUrl,
+      caption: photoCaption,
+      uploaded_by: guest?.name || 'Guest',
+      is_approved: true // Automatically approved for now, adjust based on preferences
+    });
+
+    if (!dbError) {
+      setPhotoCaption('');
+      // Reload photos
+      const { data: newPhotos } = await supabase.from('photos').select('*').eq('event_id', event.id).eq('is_approved', true).order('created_at', { ascending: false });
+      setPhotos(newPhotos || []);
+      e.target.value = '';
+      alert('Photo uploaded successfully!');
+    } else {
+      alert('Error saving photo record: ' + dbError.message);
+    }
+    setUploadingPhoto(false);
   };
 
   if (loading) {
@@ -188,10 +237,38 @@ export default function EventPage() {
           )}
 
           {activeTab === 'photos' && (
-            <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-              <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px', fontSize: '22px' }}>Photo Gallery</h3>
-              <div style={{ fontSize: '40px', marginBottom: '16px' }}>📸</div>
-              <p style={{ color: '#6b7280', fontSize: '15px', lineHeight: '1.5' }}>The photo gallery will be available during and after the event.</p>
+            <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+              <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px', fontSize: '22px', textAlign: 'center' }}>Photo Gallery</h3>
+              
+              <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '16px', marginBottom: '24px' }}>
+                <h4 style={{ marginBottom: '12px', fontSize: '15px' }}>Upload a Photo</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <input type="text" placeholder="Add a caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #e5e7eb', fontSize: '14px' }} />
+                  <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '12px 20px', borderRadius: '8px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600, textAlign: 'center' }}>
+                    {uploadingPhoto ? 'Uploading...' : 'Choose Photo'}
+                    <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploadingPhoto} style={{ display: 'none' }} />
+                  </label>
+                </div>
+              </div>
+
+              {photos.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>📸</div>
+                  <p style={{ color: '#6b7280', fontSize: '15px' }}>Be the first to share a moment!</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  {photos.map(photo => (
+                    <div key={photo.id} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: 'white' }}>
+                      <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover', display: 'block' }} />
+                      <div style={{ padding: '8px' }}>
+                        {photo.caption && <p style={{ fontSize: '12px', margin: '0 0 4px', fontWeight: 500 }}>{photo.caption}</p>}
+                        <p style={{ fontSize: '10px', color: '#6b7280', margin: 0 }}>— {photo.uploaded_by}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
