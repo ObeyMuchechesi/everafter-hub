@@ -462,10 +462,7 @@ export default function Admin({ initialRole = 'admin' }) {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.shell }}>
         <div style={{ background: 'white', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
           <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '8px', fontSize: '28px' }}>EverAfter Hub</h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>{role === 'user' ? 'User Login' : 'Admin Login'}</p>
-          <div style={{ background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, color: roleTheme.accent, padding: '10px 12px', borderRadius: '999px', textAlign: 'center', marginBottom: '16px', fontSize: '13px', fontWeight: 600 }}>
-            {roleTheme.title}
-          </div>
+          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>User Login Workspace</p>
           <form onSubmit={handleLogin}>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '16px', boxSizing: 'border-box' }} required />
