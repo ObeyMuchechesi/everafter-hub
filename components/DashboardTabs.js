@@ -2,7 +2,7 @@ import PhotoGallery from './PhotoGallery';
 import Timeline from './Timeline';
 import Menu from './Menu';
 import Guestbook from './Guestbook';
-import SongRequests from './SongRequests';
+
 
 export default function DashboardTabs({ event, activeTab, name }) {
   const eventId = event?.eventId || event?.id;
@@ -16,8 +16,6 @@ export default function DashboardTabs({ event, activeTab, name }) {
       return <Menu menu={event.menu} />;
     case 'guestbook':
       return <Guestbook name={name} eventId={eventId} />;
-    case 'requests':
-      return <SongRequests name={name} eventId={eventId} />;
     default:
       return (
         <div style={{ textAlign: 'center', padding: '32px', color: '#9ca3af' }}>

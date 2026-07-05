@@ -26,7 +26,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [menu, setMenu] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [songs, setSongs] = useState([]);
+
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrEvent, setQrEvent] = useState(null);
 
@@ -173,10 +173,6 @@ export default function Admin({ initialRole = 'admin' }) {
     setMessages(data || []);
   };
 
-  const loadSongs = async (eventId) => {
-    const { data } = await supabase.from('song_requests').select('*').eq('event_id', eventId).order('votes', { ascending: false });
-    setSongs(data || []);
-  };
 
   const selectEvent = (event) => {
     setSelectedEvent(event);
@@ -185,7 +181,6 @@ export default function Admin({ initialRole = 'admin' }) {
     loadMenu(event.id);
     loadPhotos(event.id);
     loadMessages(event.id);
-    loadSongs(event.id);
     setActiveTab('guests');
   };
 
@@ -420,7 +415,6 @@ export default function Admin({ initialRole = 'admin' }) {
       loadMenu(selectedEvent.id);
       loadPhotos(selectedEvent.id);
       loadMessages(selectedEvent.id);
-      loadSongs(selectedEvent.id);
     }
   };
 
@@ -497,7 +491,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const adminBaseTabs = ['events', 'users'];
   const userBaseTabs = ['events'];
   const baseTabs = (currentUser?.role === 'admin' || role === 'admin') ? adminBaseTabs : userBaseTabs;
-  const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'songs'];
+  const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'analytics', 'bulk_email', 'table_planner', 'sms', 'theme', 'photo_queue', 'live_chat', 'reports'];
   const tabs = selectedEvent ? [...baseTabs, ...eventTabs] : baseTabs;
 
   const handleTabClick = (tab) => {
@@ -515,7 +509,7 @@ export default function Admin({ initialRole = 'admin' }) {
       case 'menu': return menu.length;
       case 'photos': return photos.length;
       case 'messages': return messages.length;
-      case 'songs': return songs.length;
+
       default: return 0;
     }
   };
@@ -606,7 +600,8 @@ export default function Admin({ initialRole = 'admin' }) {
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
             >
               <span style={{ fontSize: '20px', marginBottom: '4px' }}>
-                {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}{tab === 'songs' && '🎵'}
+                {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}
+                {tab === 'analytics' && '📊'}{tab === 'bulk_email' && '📧'}{tab === 'table_planner' && '🏷️'}{tab === 'sms' && '📱'}{tab === 'theme' && '🎨'}{tab === 'photo_queue' && '📸'}{tab === 'live_chat' && '💬'}{tab === 'reports' && '📄'}
               </span>
               <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{tab}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
@@ -854,16 +849,32 @@ export default function Admin({ initialRole = 'admin' }) {
             </div>
           )}
 
-          {activeTab === 'songs' && selectedEvent && (
-            <div>
-              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Song Requests — {selectedEvent.event_name}</h2>
-              {songs.map(song => (
-                <div key={song.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}><div><p style={{ fontWeight: 600, margin: 0 }}>🎵 {song.song_title}</p><p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>by {song.requested_by} • 👍 {song.votes}</p></div><button onClick={() => deleteItem('song_requests', song.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button></div>
-              ))}
-            </div>
+          {activeTab === 'analytics' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Analytics Dashboard</h2><p>Guest count, check-in rate, RSVP stats coming soon...</p></div>
+          )}
+          {activeTab === 'bulk_email' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Bulk Email</h2><p>Send invitations/reminders to all guests coming soon...</p></div>
+          )}
+          {activeTab === 'table_planner' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Table Planner</h2><p>Drag-and-drop seating chart coming soon...</p></div>
+          )}
+          {activeTab === 'sms' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>SMS Notifications</h2><p>Send table number via SMS coming soon...</p></div>
+          )}
+          {activeTab === 'theme' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Theme Customizer</h2><p>Custom colors, fonts, backgrounds per event coming soon...</p></div>
+          )}
+          {activeTab === 'photo_queue' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photo Moderation Queue</h2><p>Approve/reject guest uploads coming soon...</p></div>
+          )}
+          {activeTab === 'live_chat' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Live Chat Support</h2><p>Help guests in real-time coming soon...</p></div>
+          )}
+          {activeTab === 'reports' && selectedEvent && (
+            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Export Reports</h2><p>Guest list, dietary summary, seating chart coming soon...</p></div>
           )}
 
-          {['guests','timeline','menu','photos','messages','songs'].includes(activeTab) && !selectedEvent && (
+          {['guests','timeline','menu','photos','messages','analytics','bulk_email','table_planner','sms','theme','photo_queue','live_chat','reports'].includes(activeTab) && !selectedEvent && (
             <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}><p style={{ fontSize: '40px' }}>👈</p><p>Select an event from the Events tab first</p></div>
           )}
           </motion.div>

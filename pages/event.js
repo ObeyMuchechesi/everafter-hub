@@ -17,9 +17,7 @@ export default function EventPage() {
   // Dashboard state
   const [activeTab, setActiveTab] = useState('details');
   const [newMessage, setNewMessage] = useState('');
-  const [newSong, setNewSong] = useState('');
   const [messages, setMessages] = useState([]);
-  const [songs, setSongs] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoCaption, setPhotoCaption] = useState('');
@@ -55,14 +53,14 @@ export default function EventPage() {
     const { data: timeline } = await supabase.from('timeline_items').select('*').eq('event_id', eventData.id).order('sort_order');
     const { data: menuItems } = await supabase.from('menu_items').select('*').eq('event_id', eventData.id);
     const { data: guestMessages } = await supabase.from('guestbook').select('*').eq('event_id', eventData.id).order('created_at', { ascending: false });
-    const { data: songReqs } = await supabase.from('song_requests').select('*').eq('event_id', eventData.id).order('votes', { ascending: false });
+
     const { data: eventPhotos } = await supabase.from('photos').select('*').eq('event_id', eventData.id).eq('is_approved', true).order('created_at', { ascending: false });
 
     const menu = {};
     if (menuItems) menuItems.forEach(item => { menu[item.course_type] = item.dish_name; });
 
     setMessages(guestMessages || []);
-    setSongs(songReqs || []);
+
     setPhotos(eventPhotos || []);
 
     setEvent({
@@ -106,23 +104,6 @@ export default function EventPage() {
     if (!error && data) {
       setMessages([data, ...messages]);
       setNewMessage('');
-    }
-    setIsSubmitting(false);
-  };
-
-  const submitSong = async (e) => {
-    e.preventDefault();
-    if (!newSong.trim()) return;
-    setIsSubmitting(true);
-    const { data, error } = await supabase.from('song_requests').insert({
-      event_id: event.id,
-      requested_by: guest.name,
-      song_title: newSong,
-      votes: 1
-    }).select().single();
-    if (!error && data) {
-      setSongs([...songs, data]);
-      setNewSong('');
     }
     setIsSubmitting(false);
   };
@@ -182,7 +163,7 @@ export default function EventPage() {
   }
 
   if (guest) {
-    const tabs = ['details', 'timeline', 'menu', 'photos', 'messages', 'songs'];
+    const tabs = ['details', 'timeline', 'menu', 'photos', 'messages'];
     return (
       <div className="dashboard-layout">
         <header className="dashboard-header">
@@ -205,7 +186,7 @@ export default function EventPage() {
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === t ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'white', color: activeTab === t ? 'white' : '#4b5563', position: 'relative', border: activeTab === t ? '2px solid transparent' : '1px solid #e5e7eb', boxShadow: activeTab === t ? '0 4px 12px rgba(244,63,94,0.3)' : '0 2px 4px rgba(0,0,0,0.02)' }}
               >
                 <span style={{ fontSize: '20px', marginBottom: '4px' }}>
-                  {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'songs' && '🎵'}
+                  {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}
                 </span>
                 <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{t}</span>
               </motion.button>
@@ -314,32 +295,6 @@ export default function EventPage() {
                       <div key={msg.id} style={{ background: '#f9fafb', padding: '16px', borderRadius: '16px', marginBottom: '12px' }}>
                         <p style={{ margin: '0 0 8px', color: '#1f2937', lineHeight: '1.5' }}>"{msg.message}"</p>
                         <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontWeight: 600 }}>— {msg.guest_name}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'songs' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-                  <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '8px', fontSize: '22px', textAlign: 'center' }}>Song Requests</h3>
-                  <p style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Request a song to be played at the event!</p>
-                  
-                  <form onSubmit={submitSong} style={{ marginBottom: '30px' }}>
-                    <input type="text" value={newSong} onChange={(e) => setNewSong(e.target.value)} placeholder="Song Title & Artist" style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', boxSizing: 'border-box', fontSize: '15px' }} required />
-                    <button type="submit" disabled={isSubmitting} style={{ width: '100%', marginTop: '12px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '15px' }}>{isSubmitting ? 'Sending...' : 'Request Song'}</button>
-                  </form>
-
-                  <div>
-                    {songs.map(song => (
-                      <div key={song.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9fafb', padding: '16px', borderRadius: '16px', marginBottom: '12px' }}>
-                        <div>
-                          <p style={{ margin: '0 0 4px', color: '#1f2937', fontWeight: 600 }}>{song.song_title}</p>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>Requested by {song.requested_by}</p>
-                        </div>
-                        <div style={{ background: '#fce7f3', color: '#be185d', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 700 }}>
-                          👍 {song.votes}
-                        </div>
                       </div>
                     ))}
                   </div>
