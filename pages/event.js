@@ -7,8 +7,7 @@ import { lookupGuest } from '../lib/guestLookup';
 export default function EventPage() {
   const router = useRouter();
   const { id } = router.query;
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [guestToken, setGuestToken] = useState('');
   const [error, setError] = useState('');
   const [guest, setGuest] = useState(null);
   const [event, setEvent] = useState(null);
@@ -22,6 +21,8 @@ export default function EventPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoCaption, setPhotoCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [liveChat, setLiveChat] = useState([]);
+  const [newChat, setNewChat] = useState('');
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -35,8 +36,11 @@ export default function EventPage() {
           console.error('Failed to parse guest from localStorage', e);
         }
       }
+      if (router.query.token) {
+        setGuestToken(router.query.token);
+      }
     }
-  }, [id, router.isReady]);
+  }, [id, router.isReady, router.query.token]);
 
   async function loadEvent(slug) {
     setLoading(true);
@@ -53,15 +57,15 @@ export default function EventPage() {
     const { data: timeline } = await supabase.from('timeline_items').select('*').eq('event_id', eventData.id).order('sort_order');
     const { data: menuItems } = await supabase.from('menu_items').select('*').eq('event_id', eventData.id);
     const { data: guestMessages } = await supabase.from('guestbook').select('*').eq('event_id', eventData.id).order('created_at', { ascending: false });
-
     const { data: eventPhotos } = await supabase.from('photos').select('*').eq('event_id', eventData.id).eq('is_approved', true).order('created_at', { ascending: false });
+    const { data: chatMessages } = await supabase.from('live_chat_messages').select('*').eq('event_id', eventData.id).order('created_at', { ascending: true });
 
     const menu = {};
     if (menuItems) menuItems.forEach(item => { menu[item.course_type] = item.dish_name; });
 
     setMessages(guestMessages || []);
-
     setPhotos(eventPhotos || []);
+    setLiveChat(chatMessages || []);
 
     setEvent({
       id: eventData.id,
@@ -69,6 +73,8 @@ export default function EventPage() {
       date: new Date(eventData.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       venue: eventData.venue || '',
       guests: guests?.map(g => ({ 
+        id: g.id,
+        token: g.guest_token || '',
         firstName: g.first_name, 
         lastName: g.last_name, 
         name: `${g.first_name} ${g.last_name}`.trim(), 
@@ -81,16 +87,27 @@ export default function EventPage() {
     setLoading(false);
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const found = lookupGuest(event.guests, firstName, lastName);
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const tokenToUse = (typeof e === 'string' ? e : guestToken).trim().toLowerCase();
+    
+    const found = event.guests.find(g => g.token && g.token.toLowerCase().startsWith(tokenToUse));
     if (found) { 
       setGuest(found); 
       setError(''); 
       localStorage.setItem(`everafter_guest_${id}`, JSON.stringify(found));
+      
+      // Record check-in time
+      await supabase.from('guests').update({ checked_in_at: new Date().toISOString() }).eq('id', found.id);
     }
-    else { setError('Name not found. Please check your spelling.'); }
+    else { setError('Invalid Guest Token. Please check your RSVP email.'); }
   };
+
+  useEffect(() => {
+    if (event && router.query.token && !guest) {
+      handleSubmit(router.query.token);
+    }
+  }, [event, router.query.token]);
 
   const submitMessage = async (e) => {
     e.preventDefault();
@@ -124,22 +141,34 @@ export default function EventPage() {
         image_url: base64String,
         caption: photoCaption,
         uploaded_by: guest?.name || 'Guest',
-        is_approved: true // Automatically approved for now, adjust based on preferences
+        is_approved: false
       });
 
       if (!dbError) {
+        alert('Photo uploaded! It will appear in the gallery once approved by the host.');
         setPhotoCaption('');
-        // Reload photos
-        const { data: newPhotos } = await supabase.from('photos').select('*').eq('event_id', event.id).eq('is_approved', true).order('created_at', { ascending: false });
-        setPhotos(newPhotos || []);
-        e.target.value = '';
-        alert('Photo uploaded successfully!');
       } else {
-        alert('Error saving photo record: ' + dbError.message);
+        alert('Upload failed: ' + dbError.message);
       }
       setUploadingPhoto(false);
     };
     reader.readAsDataURL(file);
+  };
+
+  const submitChat = async (e) => {
+    e.preventDefault();
+    if (!newChat.trim() || !event || !guest) return;
+    const { data, error } = await supabase.from('live_chat_messages').insert({
+      event_id: event.id,
+      guest_id: guest.id,
+      sender_name: guest.firstName,
+      message: newChat,
+      is_admin: false
+    }).select().single();
+    if (!error && data) {
+      setLiveChat([...liveChat, data]);
+      setNewChat('');
+    }
   };
 
   if (loading) {
@@ -163,14 +192,14 @@ export default function EventPage() {
   }
 
   if (guest) {
-    const tabs = ['details', 'timeline', 'menu', 'photos', 'messages'];
+    const tabs = ['details', 'timeline', 'menu', 'photos', 'messages', 'chat'];
     return (
       <div className="dashboard-layout">
         <header className="dashboard-header">
           <motion.h2 initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)' }}>
             {event.couple}
           </motion.h2>
-          <button onClick={() => { setGuest(null); setFirstName(''); setLastName(''); localStorage.removeItem(`everafter_guest_${id}`); }} style={{ background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+          <button onClick={() => { setGuest(null); localStorage.removeItem(`everafter_guest_${id}`); }} style={{ background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
             Sign Out
           </button>
         </header>
@@ -186,7 +215,7 @@ export default function EventPage() {
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === t ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'white', color: activeTab === t ? 'white' : '#4b5563', position: 'relative', border: activeTab === t ? '2px solid transparent' : '1px solid #e5e7eb', boxShadow: activeTab === t ? '0 4px 12px rgba(244,63,94,0.3)' : '0 2px 4px rgba(0,0,0,0.02)' }}
               >
                 <span style={{ fontSize: '20px', marginBottom: '4px' }}>
-                  {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}
+                  {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'chat' && '✨'}
                 </span>
                 <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{t}</span>
               </motion.button>
@@ -325,25 +354,15 @@ export default function EventPage() {
           <div style={{ marginBottom: '8px' }}>
             <div className="floating-input-group">
               <input 
-                id="guest-firstname"
+                id="guest-token"
                 type="text" 
-                value={firstName} 
-                onChange={(e) => { setFirstName(e.target.value); setError(''); }} 
+                value={guestToken} 
+                onChange={(e) => { setGuestToken(e.target.value); setError(''); }} 
                 placeholder=" " 
+                style={{ textTransform: 'uppercase' }}
                 required 
               />
-              <label htmlFor="guest-firstname">First Name</label>
-            </div>
-            <div className="floating-input-group">
-              <input 
-                id="guest-lastname"
-                type="text" 
-                value={lastName} 
-                onChange={(e) => { setLastName(e.target.value); setError(''); }} 
-                placeholder=" " 
-                required 
-              />
-              <label htmlFor="guest-lastname">Last Name</label>
+              <label htmlFor="guest-token">Guest Token (e.g. 1A2B3C)</label>
             </div>
           </div>
           {error && <p style={{ color: '#dc2626', textAlign: 'center', marginBottom: '16px', fontSize: '14px', background: '#fef2f2', padding: '12px', borderRadius: '12px', fontWeight: 500 }}>{error}</p>}

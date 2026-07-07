@@ -26,6 +26,8 @@ export default function Admin({ initialRole = 'admin' }) {
   const [menu, setMenu] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [liveChat, setLiveChat] = useState([]);
+  const [newLiveChatMessage, setNewLiveChatMessage] = useState('');
 
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrEvent, setQrEvent] = useState(null);
@@ -173,6 +175,11 @@ export default function Admin({ initialRole = 'admin' }) {
     setMessages(data || []);
   };
 
+  const loadLiveChat = async (eventId) => {
+    const { data } = await supabase.from('live_chat_messages').select('*').eq('event_id', eventId).order('created_at', { ascending: true });
+    setLiveChat(data || []);
+  };
+
 
   const selectEvent = (event) => {
     setSelectedEvent(event);
@@ -181,6 +188,8 @@ export default function Admin({ initialRole = 'admin' }) {
     loadMenu(event.id);
     loadPhotos(event.id);
     loadMessages(event.id);
+    loadLiveChat(event.id);
+    setShowEventForm(false);
     setActiveTab('guests');
   };
 
@@ -730,9 +739,23 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {guests.map(guest => (
-                <div key={guest.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                  <div><span style={{ fontWeight: 600 }}>{guest.first_name} {guest.last_name}</span><span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>Table {guest.table_number}</span>{guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', marginLeft: '8px' }}>{guest.dietary_requirements}</span>}</div>
-                  <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                <div key={guest.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '15px' }}>{guest.first_name} {guest.last_name}</span>
+                      <span style={{ color: '#6b7280', fontSize: '13px', background: '#f3f4f6', padding: '2px 8px', borderRadius: '12px' }}>Table {guest.table_number}</span>
+                      {guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>{guest.dietary_requirements}</span>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#6b7280' }}>
+                      <span><strong style={{color:'#374151'}}>Token:</strong> {guest.guest_token ? guest.guest_token.substring(0,6).toUpperCase() : 'N/A'}</span>
+                      <span><strong style={{color:'#374151'}}>RSVP:</strong> <span style={{ color: guest.rsvp_status === 'attending' ? '#10b981' : guest.rsvp_status === 'declined' ? '#ef4444' : '#f59e0b', fontWeight: 600, textTransform: 'capitalize' }}>{guest.rsvp_status || 'pending'}</span></span>
+                      <span><strong style={{color:'#374151'}}>Checked In:</strong> {guest.checked_in_at ? new Date(guest.checked_in_at).toLocaleTimeString() : 'No'}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/${guest.guest_token}`); alert('RSVP link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>🔗 Copy RSVP</button>
+                    <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -830,10 +853,10 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {photos.map(photo => (
+                {photos.filter(p => p.is_approved).map(photo => (
                   <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                     <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
-                    <div style={{ padding: '10px' }}><p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p><div style={{ display: 'flex', gap: '6px' }}><button onClick={() => approvePhoto(photo.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Approve</button><button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button></div></div>
+                    <div style={{ padding: '10px' }}><p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p><div style={{ display: 'flex', gap: '6px' }}><button onClick={() => approvePhoto(photo.id, false)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Unapprove</button><button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button></div></div>
                   </div>
                 ))}
               </div>
@@ -850,7 +873,54 @@ export default function Admin({ initialRole = 'admin' }) {
           )}
 
           {activeTab === 'analytics' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Analytics Dashboard</h2><p>Guest count, check-in rate, RSVP stats coming soon...</p></div>
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Event Analytics</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{guests.length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Invited</p>
+                </div>
+                
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.rsvp_status === 'attending').length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
+                </div>
+
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📍</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.checked_in_at).length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Checked In</p>
+                </div>
+
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f43f5e', fontFamily: 'Playfair Display, serif' }}>{photos.length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Photos Uploaded</p>
+                </div>
+
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{messages.length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
+                </div>
+
+              </div>
+              <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#1f2937' }}>Dietary Requirements Overview</h3>
+                <ul style={{ paddingLeft: '20px', color: '#4b5563', lineHeight: 1.6 }}>
+                  {guests.filter(g => g.dietary_requirements).length > 0 ? (
+                    guests.filter(g => g.dietary_requirements).map(g => (
+                      <li key={g.id}><strong>{g.first_name} {g.last_name}:</strong> {g.dietary_requirements} (Table {g.table_number})</li>
+                    ))
+                  ) : (
+                    <li>No dietary requirements reported.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
           )}
           {activeTab === 'bulk_email' && selectedEvent && (
             <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Bulk Email</h2><p>Send invitations/reminders to all guests coming soon...</p></div>
@@ -865,10 +935,46 @@ export default function Admin({ initialRole = 'admin' }) {
             <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Theme Customizer</h2><p>Custom colors, fonts, backgrounds per event coming soon...</p></div>
           )}
           {activeTab === 'photo_queue' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photo Moderation Queue</h2><p>Approve/reject guest uploads coming soon...</p></div>
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photo Moderation Queue</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                {photos.filter(p => !p.is_approved).map(photo => (
+                  <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                    <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
+                    <div style={{ padding: '10px' }}>
+                      <p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button onClick={() => approvePhoto(photo.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Approve</button>
+                        <button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Reject & Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {photos.filter(p => !p.is_approved).length === 0 && <p style={{ color: '#6b7280' }}>All photos are approved! Queue is empty.</p>}
+              </div>
+            </div>
           )}
           {activeTab === 'live_chat' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Live Chat Support</h2><p>Help guests in real-time coming soon...</p></div>
+            <div style={{ display: 'flex', flexDirection: 'column', height: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', margin: 0 }}>Live Chat Support</h2>
+                <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>Chat directly with guests in real-time.</p>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {liveChat.map(msg => (
+                  <div key={msg.id} style={{ alignSelf: msg.is_admin ? 'flex-end' : 'flex-start', maxWidth: '75%' }}>
+                    <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 4px 4px', textAlign: msg.is_admin ? 'right' : 'left' }}>{msg.sender_name}</p>
+                    <div style={{ background: msg.is_admin ? '#f43f5e' : '#f3f4f6', color: msg.is_admin ? 'white' : '#1f2937', padding: '12px 16px', borderRadius: '16px', borderBottomRightRadius: msg.is_admin ? '4px' : '16px', borderBottomLeftRadius: msg.is_admin ? '16px' : '4px' }}>
+                      <p style={{ margin: 0, fontSize: '14px' }}>{msg.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <form onSubmit={addLiveChatMessage} style={{ padding: '16px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: '8px' }}>
+                <input type="text" placeholder="Type your message..." value={newLiveChatMessage} onChange={(e) => setNewLiveChatMessage(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '9999px', border: '1px solid #e5e7eb', fontSize: '14px', outline: 'none' }} />
+                <button type="submit" style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', border: 'none', padding: '0 24px', borderRadius: '9999px', cursor: 'pointer', fontWeight: 'bold' }}>Send</button>
+              </form>
+            </div>
           )}
           {activeTab === 'reports' && selectedEvent && (
             <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Export Reports</h2><p>Guest list, dietary summary, seating chart coming soon...</p></div>
