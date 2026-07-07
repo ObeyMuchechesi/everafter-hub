@@ -40,8 +40,21 @@ export default function Admin({ initialRole = 'admin' }) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
 
-  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
+  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '' });
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
+
+  const handleCoverUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingCover(true);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewEvent({ ...newEvent, cover_photo: reader.result });
+      setUploadingCover(false);
+    };
+    reader.readAsDataURL(file);
+  };
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
   const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' });
@@ -256,7 +269,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
       if (!error && data) {
         setShowEventForm(false);
-        setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '' });
+        setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '' });
         setNewUserForEvent({ email: '', full_name: '', password: '' });
         loadEvents(currentUser);
         setSelectedEvent(data);
@@ -500,7 +513,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const adminBaseTabs = ['events', 'users'];
   const userBaseTabs = ['events'];
   const baseTabs = (currentUser?.role === 'admin' || role === 'admin') ? adminBaseTabs : userBaseTabs;
-  const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'analytics', 'bulk_email', 'table_planner', 'sms', 'theme', 'photo_queue', 'live_chat', 'reports'];
+  const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'analytics', 'table_planner', 'photo_queue', 'live_chat', 'reports'];
   const tabs = selectedEvent ? [...baseTabs, ...eventTabs] : baseTabs;
 
   const handleTabClick = (tab) => {
@@ -610,7 +623,7 @@ export default function Admin({ initialRole = 'admin' }) {
             >
               <span style={{ fontSize: '20px', marginBottom: '4px' }}>
                 {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}
-                {tab === 'analytics' && '📊'}{tab === 'bulk_email' && '📧'}{tab === 'table_planner' && '🏷️'}{tab === 'sms' && '📱'}{tab === 'theme' && '🎨'}{tab === 'photo_queue' && '📸'}{tab === 'live_chat' && '💬'}{tab === 'reports' && '📄'}
+                {tab === 'analytics' && '📊'}{tab === 'table_planner' && '🏷️'}{tab === 'photo_queue' && '📸'}{tab === 'live_chat' && '💬'}{tab === 'reports' && '📄'}
               </span>
               <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{tab}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
@@ -660,6 +673,22 @@ export default function Admin({ initialRole = 'admin' }) {
                     <input type="date" value={newEvent.event_date} onChange={(e) => setNewEvent({...newEvent, event_date: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Venue" value={newEvent.venue} onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="URL slug" value={newEvent.slug} onChange={(e) => setNewEvent({...newEvent, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    
+                    <select value={newEvent.background_theme} onChange={(e) => setNewEvent({...newEvent, background_theme: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
+                      <option value="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80">Romantic Floral (Wedding)</option>
+                      <option value="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80">Elegant Dark (Gala)</option>
+                      <option value="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80">Bright Party (Party)</option>
+                      <option value="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80">Minimalist (Corporate)</option>
+                      <option value="https://images.unsplash.com/photo-1530103862676-de8892bf309c?auto=format&fit=crop&w=1920&q=80">Festive (Birthday)</option>
+                    </select>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Cover Photo (Optional)</label>
+                      <input type="file" accept="image/*" onChange={handleCoverUpload} disabled={uploadingCover} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+                      {uploadingCover && <span style={{ fontSize: '12px', color: '#f43f5e' }}>Processing...</span>}
+                      {newEvent.cover_photo && <span style={{ fontSize: '12px', color: '#10b981' }}>Cover photo added!</span>}
+                    </div>
+
                     <select value={newEvent.assigned_user_id} onChange={(e) => setNewEvent({...newEvent, assigned_user_id: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', gridColumn: '1/-1' }}>
                       <option value="">Create a new user account for this event</option>
                       {users.map(user => <option key={user.id} value={user.id}>{user.full_name} ({user.email})</option>)}
@@ -922,17 +951,8 @@ export default function Admin({ initialRole = 'admin' }) {
               </div>
             </div>
           )}
-          {activeTab === 'bulk_email' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Bulk Email</h2><p>Send invitations/reminders to all guests coming soon...</p></div>
-          )}
           {activeTab === 'table_planner' && selectedEvent && (
             <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Table Planner</h2><p>Drag-and-drop seating chart coming soon...</p></div>
-          )}
-          {activeTab === 'sms' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>SMS Notifications</h2><p>Send table number via SMS coming soon...</p></div>
-          )}
-          {activeTab === 'theme' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Theme Customizer</h2><p>Custom colors, fonts, backgrounds per event coming soon...</p></div>
           )}
           {activeTab === 'photo_queue' && selectedEvent && (
             <div>
@@ -980,7 +1000,7 @@ export default function Admin({ initialRole = 'admin' }) {
             <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Export Reports</h2><p>Guest list, dietary summary, seating chart coming soon...</p></div>
           )}
 
-          {['guests','timeline','menu','photos','messages','analytics','bulk_email','table_planner','sms','theme','photo_queue','live_chat','reports'].includes(activeTab) && !selectedEvent && (
+          {['guests','timeline','menu','photos','messages','analytics','table_planner','photo_queue','live_chat','reports'].includes(activeTab) && !selectedEvent && (
             <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}><p style={{ fontSize: '40px' }}>👈</p><p>Select an event from the Events tab first</p></div>
           )}
           </motion.div>

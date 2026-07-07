@@ -7,7 +7,8 @@ import { lookupGuest } from '../lib/guestLookup';
 export default function EventPage() {
   const router = useRouter();
   const { id } = router.query;
-  const [guestToken, setGuestToken] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const [guest, setGuest] = useState(null);
   const [event, setEvent] = useState(null);
@@ -36,11 +37,8 @@ export default function EventPage() {
           console.error('Failed to parse guest from localStorage', e);
         }
       }
-      if (router.query.token) {
-        setGuestToken(router.query.token);
-      }
     }
-  }, [id, router.isReady, router.query.token]);
+  }, [id, router.isReady]);
 
   async function loadEvent(slug) {
     setLoading(true);
@@ -72,6 +70,8 @@ export default function EventPage() {
       couple: eventData.host_name || 'Guest',
       date: new Date(eventData.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       venue: eventData.venue || '',
+      backgroundTheme: eventData.background_theme || '',
+      coverPhoto: eventData.cover_photo || '',
       guests: guests?.map(g => ({ 
         id: g.id,
         token: g.guest_token || '',
@@ -89,9 +89,8 @@ export default function EventPage() {
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    const tokenToUse = (typeof e === 'string' ? e : guestToken).trim().toLowerCase();
     
-    const found = event.guests.find(g => g.token && g.token.toLowerCase().startsWith(tokenToUse));
+    const found = lookupGuest(event.guests, firstName, lastName);
     if (found) { 
       setGuest(found); 
       setError(''); 
@@ -100,14 +99,8 @@ export default function EventPage() {
       // Record check-in time
       await supabase.from('guests').update({ checked_in_at: new Date().toISOString() }).eq('id', found.id);
     }
-    else { setError('Invalid Guest Token. Please check your RSVP email.'); }
+    else { setError('We couldn\'t find your name on the guest list. Please check spelling or contact the hosts.'); }
   };
-
-  useEffect(() => {
-    if (event && router.query.token && !guest) {
-      handleSubmit(router.query.token);
-    }
-  }, [event, router.query.token]);
 
   const submitMessage = async (e) => {
     e.preventDefault();
@@ -194,8 +187,8 @@ export default function EventPage() {
   if (guest) {
     const tabs = ['details', 'timeline', 'menu', 'photos', 'messages', 'chat'];
     return (
-      <div className="dashboard-layout">
-        <header className="dashboard-header">
+      <div className="dashboard-layout" style={{ backgroundImage: event.backgroundTheme ? `url(${event.backgroundTheme})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh' }}>
+        <header className="dashboard-header" style={{ background: event.backgroundTheme ? 'rgba(255, 255, 255, 0.85)' : 'white', backdropFilter: 'blur(10px)' }}>
           <motion.h2 initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)' }}>
             {event.couple}
           </motion.h2>
@@ -233,12 +226,17 @@ export default function EventPage() {
               transition={{ duration: 0.3 }}
             >
               {activeTab === 'details' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '40px 20px', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-                  <p style={{ color: '#9ca3af', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>Your Table</p>
-                  <p style={{ fontSize: '80px', fontFamily: 'Playfair Display, serif', fontWeight: 700, background: 'linear-gradient(to bottom right, #f43f5e, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0' }}>{guest.table}</p>
-                  {guest.diet && <p style={{ color: '#6b7280', marginTop: '16px', fontSize: '14px' }}>🥗 Dietary: {guest.diet}</p>}
+                <div style={{ background: 'white', borderRadius: '24px', padding: '0 0 40px 0', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                  {event.coverPhoto && (
+                    <img src={event.coverPhoto} alt="Event Cover" style={{ width: '100%', height: '200px', objectFit: 'cover', marginBottom: '20px' }} />
+                  )}
+                  <div style={{ padding: event.coverPhoto ? '0 20px' : '40px 20px 0 20px' }}>
+                    <p style={{ color: '#9ca3af', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>Your Table</p>
+                    <p style={{ fontSize: '80px', fontFamily: 'Playfair Display, serif', fontWeight: 700, background: 'linear-gradient(to bottom right, #f43f5e, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0' }}>{guest.table}</p>
+                    {guest.diet && <p style={{ color: '#6b7280', marginTop: '16px', fontSize: '14px' }}>🥗 Dietary: {guest.diet}</p>}
                   <p style={{ marginTop: '24px', color: '#4b5563', fontSize: '18px' }}>Welcome, <strong>{guest.name}</strong>!</p>
                   <p style={{ color: '#9ca3af', fontSize: '13px', marginTop: '8px' }}>{event.date} • {event.venue}</p>
+                  </div>
                 </div>
               )}
 
@@ -337,7 +335,7 @@ export default function EventPage() {
   }
 
   return (
-    <div className="login-background" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div className="login-background" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundImage: event.backgroundTheme ? `url(${event.backgroundTheme})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -354,15 +352,27 @@ export default function EventPage() {
           <div style={{ marginBottom: '8px' }}>
             <div className="floating-input-group">
               <input 
-                id="guest-token"
+                id="first-name"
                 type="text" 
-                value={guestToken} 
-                onChange={(e) => { setGuestToken(e.target.value); setError(''); }} 
+                value={firstName} 
+                onChange={(e) => { setFirstName(e.target.value); setError(''); }} 
                 placeholder=" " 
-                style={{ textTransform: 'uppercase' }}
                 required 
               />
-              <label htmlFor="guest-token">Guest Token (e.g. 1A2B3C)</label>
+              <label htmlFor="first-name">First Name</label>
+            </div>
+          </div>
+          <div style={{ marginBottom: '24px' }}>
+            <div className="floating-input-group">
+              <input 
+                id="last-name"
+                type="text" 
+                value={lastName} 
+                onChange={(e) => { setLastName(e.target.value); setError(''); }} 
+                placeholder=" " 
+                required 
+              />
+              <label htmlFor="last-name">Last Name</label>
             </div>
           </div>
           {error && <p style={{ color: '#dc2626', textAlign: 'center', marginBottom: '16px', fontSize: '14px', background: '#fef2f2', padding: '12px', borderRadius: '12px', fontWeight: 500 }}>{error}</p>}
