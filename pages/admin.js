@@ -674,13 +674,39 @@ export default function Admin({ initialRole = 'admin' }) {
                     <input placeholder="Venue" value={newEvent.venue} onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="URL slug" value={newEvent.slug} onChange={(e) => setNewEvent({...newEvent, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     
-                    <select value={newEvent.background_theme} onChange={(e) => setNewEvent({...newEvent, background_theme: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
-                      <option value="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80">Romantic Floral (Wedding)</option>
-                      <option value="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80">Elegant Dark (Gala)</option>
-                      <option value="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80">Bright Party (Party)</option>
-                      <option value="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80">Minimalist (Corporate)</option>
-                      <option value="https://images.unsplash.com/photo-1530103862676-de8892bf309c?auto=format&fit=crop&w=1920&q=80">Festive (Birthday)</option>
-                    </select>
+                    <div style={{ gridColumn: '1/-1', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Background Theme</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+                        {[
+                          { url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', label: 'Wedding' },
+                          { url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80', label: 'Gala' },
+                          { url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80', label: 'Party' },
+                          { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80', label: 'Corporate' },
+                          { url: 'https://images.unsplash.com/photo-1530103862676-de8892bf309c?auto=format&fit=crop&w=1920&q=80', label: 'Birthday' },
+                        ].map((theme, i) => (
+                          <div 
+                            key={i}
+                            onClick={() => setNewEvent({...newEvent, background_theme: theme.url})}
+                            style={{
+                              height: '80px',
+                              borderRadius: '8px',
+                              backgroundImage: `url(${theme.url})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              cursor: 'pointer',
+                              border: newEvent.background_theme === theme.url ? '3px solid #f43f5e' : '3px solid transparent',
+                              boxShadow: newEvent.background_theme === theme.url ? '0 0 10px rgba(244,63,94,0.5)' : 'none',
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '10px', textAlign: 'center', padding: '2px 0' }}>
+                              {theme.label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                       <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Cover Photo (Optional)</label>
