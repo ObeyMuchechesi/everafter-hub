@@ -89,8 +89,11 @@ export default function NewRSVP() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf2f8', padding: '20px' }}>
-      <div style={{ background: 'white', padding: '40px 30px', borderRadius: '24px', maxWidth: '480px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: event.background_theme ? `url(${event.background_theme})` : '#fdf2f8', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', padding: '20px' }}>
+      <div style={{ background: event.background_theme ? 'rgba(255, 255, 255, 0.95)' : 'white', backdropFilter: 'blur(10px)', padding: '40px 30px', borderRadius: '24px', maxWidth: '480px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
+        {event.cover_photo && (
+          <img src={event.cover_photo} alt="Event Cover" style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain', borderRadius: '12px', marginBottom: '24px' }} />
+        )}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <p style={{ textTransform: 'uppercase', letterSpacing: '2px', color: '#f43f5e', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>You are invited to</p>
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '32px', color: '#1f2937', marginBottom: '8px' }}>{event.event_name}</h1>
@@ -105,16 +108,9 @@ export default function NewRSVP() {
             <p style={{ color: '#4b5563', lineHeight: 1.6 }}>Thank you, {firstName}! You've been successfully added to the guest list and a seat has been reserved for you.</p>
             
             <div style={{ marginTop: '24px', background: '#f3f4f6', padding: '20px', borderRadius: '12px' }}>
-              <p style={{ fontWeight: 600, color: '#374151', marginBottom: '8px', fontSize: '14px' }}>Your Unique Check-In Link:</p>
-              <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '12px', wordBreak: 'break-all' }}>{checkInLink}</p>
-              <button 
-                onClick={() => { navigator.clipboard.writeText(checkInLink); alert('Link copied! Save this link to check-in on the day of the event.'); }}
-                style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}
-              >
-                📋 Copy Link
-              </button>
+              <p style={{ fontWeight: 600, color: '#374151', marginBottom: '8px', fontSize: '14px' }}>We look forward to seeing you!</p>
+              <p style={{ color: '#6b7280', fontSize: '13px' }}>Please check in with your name on the day of the event.</p>
             </div>
-            <p style={{ color: '#9ca3af', marginTop: '16px', fontSize: '12px' }}>Please keep this link safe. You will need it to check-in and find your assigned table on the day of the event.</p>
           </motion.div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
