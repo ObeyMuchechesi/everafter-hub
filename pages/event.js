@@ -21,6 +21,7 @@ export default function EventPage() {
   const [photos, setPhotos] = useState([]);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoCaption, setPhotoCaption] = useState('');
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [liveChat, setLiveChat] = useState([]);
   const [newChat, setNewChat] = useState('');
@@ -137,34 +138,40 @@ export default function EventPage() {
     setIsSubmitting(false);
   };
 
-  const handlePhotoUpload = async (e) => {
-    if (!event) return;
+  const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    setUploadingPhoto(true);
-    
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result;
-
-      const { error: dbError } = await supabase.from('photos').insert({
-        event_id: event.id,
-        image_url: base64String,
-        caption: photoCaption,
-        uploaded_by: guest?.name || 'Guest',
-        is_approved: false
-      });
-
-      if (!dbError) {
-        alert('Photo uploaded! It will appear in the gallery once approved by the host.');
-        setPhotoCaption('');
-      } else {
-        alert('Upload failed: ' + dbError.message);
-      }
-      setUploadingPhoto(false);
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const confirmPhotoUpload = async () => {
+    if (!event || !photoPreview) return;
+    setUploadingPhoto(true);
+    const { error: dbError } = await supabase.from('photos').insert({
+      event_id: event.id,
+      image_url: photoPreview,
+      caption: photoCaption,
+      uploaded_by: guest?.name || 'Guest',
+      is_approved: false
+    });
+
+    if (!dbError) {
+      alert('Photo uploaded! It will appear in the gallery once approved by the host.');
+      setPhotoCaption('');
+      setPhotoPreview(null);
+    } else {
+      alert('Upload failed: ' + dbError.message);
+    }
+    setUploadingPhoto(false);
+  };
+
+  const cancelPhotoUpload = () => {
+    setPhotoPreview(null);
+    setPhotoCaption('');
   };
 
   const submitChat = async (e) => {
@@ -296,13 +303,24 @@ export default function EventPage() {
                   
                   <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '16px', marginBottom: '24px' }}>
                     <h4 style={{ marginBottom: '12px', fontSize: '15px' }}>Upload a Photo</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <input type="text" placeholder="Add a caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #e5e7eb', fontSize: '14px' }} />
-                      <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '12px 20px', borderRadius: '8px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600, textAlign: 'center' }}>
-                        {uploadingPhoto ? 'Uploading...' : 'Choose Photo'}
-                        <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploadingPhoto} style={{ display: 'none' }} />
-                      </label>
-                    </div>
+                    
+                    {!photoPreview ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '12px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, textAlign: 'center' }}>
+                          Choose Photo
+                          <input type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <img src={photoPreview} alt="Preview" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '12px', border: '1px solid #e5e7eb' }} />
+                        <input type="text" placeholder="Add a caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '2px solid #e5e7eb', fontSize: '14px' }} />
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                           <button onClick={confirmPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, background: '#10b981', color: 'white', padding: '12px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>{uploadingPhoto ? 'Uploading...' : 'Upload Photo'}</button>
+                           <button onClick={cancelPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, background: '#ef4444', color: 'white', padding: '12px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>Cancel</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {photos.length === 0 ? (

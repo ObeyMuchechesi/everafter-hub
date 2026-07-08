@@ -77,6 +77,7 @@ export default function Admin({ initialRole = 'admin' }) {
   
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoCaption, setPhotoCaption] = useState('');
+  const [galleryPhotoPreview, setGalleryPhotoPreview] = useState(null);
 
   useEffect(() => {
     if (router.query?.role) {
@@ -483,34 +484,40 @@ export default function Admin({ initialRole = 'admin' }) {
     if (selectedEvent) loadPhotos(selectedEvent.id);
   };
 
-  const handlePhotoUpload = async (e) => {
-    if (!selectedEvent) return;
+  const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    setUploadingPhoto(true);
-
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result;
-      const { error: dbError } = await supabase.from('photos').insert({
-        event_id: selectedEvent.id,
-        image_url: base64String,
-        caption: photoCaption,
-        uploaded_by: currentUser?.full_name || 'Admin',
-        is_approved: true
-      });
-
-      if (!dbError) {
-        setPhotoCaption('');
-        loadPhotos(selectedEvent.id);
-        e.target.value = ''; // Reset file input
-      } else {
-        alert('Error saving photo record: ' + dbError.message);
-      }
-      setUploadingPhoto(false);
+    reader.onloadend = () => {
+      setGalleryPhotoPreview(reader.result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const confirmGalleryPhotoUpload = async () => {
+    if (!selectedEvent || !galleryPhotoPreview) return;
+    setUploadingPhoto(true);
+    const { error: dbError } = await supabase.from('photos').insert({
+      event_id: selectedEvent.id,
+      image_url: galleryPhotoPreview,
+      caption: photoCaption,
+      uploaded_by: currentUser?.full_name || 'Admin',
+      is_approved: true
+    });
+
+    if (!dbError) {
+      setPhotoCaption('');
+      setGalleryPhotoPreview(null);
+      loadPhotos(selectedEvent.id);
+    } else {
+      alert('Error saving photo record: ' + dbError.message);
+    }
+    setUploadingPhoto(false);
+  };
+  
+  const cancelGalleryPhotoUpload = () => {
+    setGalleryPhotoPreview(null);
+    setPhotoCaption('');
   };
 
   if (!loggedIn) {
@@ -955,26 +962,23 @@ export default function Admin({ initialRole = 'admin' }) {
               </div>
               <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <h4 style={{ marginBottom: '12px' }}>Upload New Photo</h4>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <input type="text" placeholder="Caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                  <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600, display: 'inline-block' }}>
-                    {uploadingPhoto ? 'Uploading...' : 'Choose File & Upload'}
-                    <input type="file" accept="image/*" onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        setUploadingPhoto(true);
-                        const reader = new FileReader();
-                        reader.onloadend = async () => {
-                          const base64 = reader.result;
-                          await uploadPhotoToBase64(base64, photoCaption);
-                          setUploadingPhoto(false);
-                          setPhotoCaption('');
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }} disabled={uploadingPhoto} style={{ display: 'none' }} />
-                  </label>
-                </div>
+                {!galleryPhotoPreview ? (
+                  <div>
+                    <label style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'inline-block' }}>
+                      Choose Photo
+                      <input type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+                    </label>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start' }}>
+                    <img src={galleryPhotoPreview} alt="Preview" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '12px', border: '1px solid #e5e7eb' }} />
+                    <input type="text" placeholder="Caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', boxSizing: 'border-box' }} />
+                    <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+                      <button onClick={confirmGalleryPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>{uploadingPhoto ? 'Uploading...' : 'Upload & Save'}</button>
+                      <button onClick={cancelGalleryPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, background: '#ef4444', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>Cancel</button>
+                    </div>
+                  </div>
+                )}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.filter(p => p.is_approved).map(photo => (
