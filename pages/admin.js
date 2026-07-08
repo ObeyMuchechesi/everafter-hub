@@ -921,7 +921,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete All Events</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input placeholder="Type 'deleteevents'" value={dangerInput.events} onChange={(e) => setDangerInput({...dangerInput, events: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
-                  <button onClick={async () => { if (dangerInput.events === 'deleteevents') { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteevents'}) }); alert('Events Deleted'); loadEvents(); setDangerInput({...dangerInput, events: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                  <button onClick={async () => { if (dangerInput.events === 'deleteevents') { if(!confirm('Are you absolutely sure?')) return; await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteevents'}) }); alert('Events Deleted'); loadEvents(); setDangerInput({...dangerInput, events: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
                 </div>
               </div>
 
@@ -929,7 +929,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete All Users</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input placeholder="Type 'deleteusers'" value={dangerInput.users} onChange={(e) => setDangerInput({...dangerInput, users: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
-                  <button onClick={async () => { if (dangerInput.users === 'deleteusers') { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteusers', adminId: currentUser.id}) }); alert('Users Deleted'); loadUsers(); setDangerInput({...dangerInput, users: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                  <button onClick={async () => { if (dangerInput.users === 'deleteusers') { if(!confirm('Are you absolutely sure?')) return; await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteusers', adminId: currentUser.id}) }); alert('Users Deleted'); loadUsers(); setDangerInput({...dangerInput, users: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
                 </div>
               </div>
 
@@ -943,7 +943,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input placeholder="Type 'deleteguests'" value={dangerInput.guests} onChange={(e) => setDangerInput({...dangerInput, guests: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
-                  <button onClick={async () => { if (dangerInput.guests === 'deleteguests') { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteguests', eventId: dangerInput.targetEventId}) }); alert('Guests Deleted'); setDangerInput({...dangerInput, guests: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                  <button onClick={async () => { if (dangerInput.guests === 'deleteguests') { if(!confirm('Are you absolutely sure?')) return; await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteguests', eventId: dangerInput.targetEventId}) }); alert('Guests Deleted'); setDangerInput({...dangerInput, guests: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
                 </div>
               </div>
             </div>
