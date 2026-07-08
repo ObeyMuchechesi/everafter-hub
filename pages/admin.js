@@ -775,11 +775,11 @@ export default function Admin({ initialRole = 'admin' }) {
                           { url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80', label: 'Gala' },
                           { url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80', label: 'Party' },
                           { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80', label: 'Corporate' },
-                          { url: 'https://images.unsplash.com/photo-1530103862676-de8892bf309c?auto=format&fit=crop&w=1920&q=80', label: 'Birthday' },
+                          { url: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=1920&q=80', label: 'Birthday' },
                           { url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80', label: 'Nature' },
                           { url: 'https://images.unsplash.com/photo-1473177104440-ffee2f376098?auto=format&fit=crop&w=1920&q=80', label: 'Minimal' },
-                          { url: 'https://images.unsplash.com/photo-1558236714-d9a21138dd28?auto=format&fit=crop&w=1920&q=80', label: 'Neon' },
-                          { url: 'https://images.unsplash.com/photo-1605808311910-6fa2f1dc44ab?auto=format&fit=crop&w=1920&q=80', label: 'Luxury' },
+                          { url: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?auto=format&fit=crop&w=1920&q=80', label: 'Neon' },
+                          { url: 'https://images.unsplash.com/photo-1542314831-c6a4d27ce006?auto=format&fit=crop&w=1920&q=80', label: 'Luxury' },
                           { url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1920&q=80', label: 'Abstract' },
                         ].map((theme, i) => (
                           <div 
@@ -803,9 +803,6 @@ export default function Admin({ initialRole = 'admin' }) {
                             </div>
                           </div>
                         ))}
-                      </div>
-                      <div style={{ marginTop: '10px' }}>
-                        <input type="url" placeholder="Or enter a custom image URL (e.g., from Unsplash or Pexels)" value={newEvent.background_theme} onChange={(e) => setNewEvent({...newEvent, background_theme: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', boxSizing: 'border-box' }} />
                       </div>
                     </div>
 
