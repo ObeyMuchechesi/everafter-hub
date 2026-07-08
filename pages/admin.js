@@ -21,8 +21,10 @@ export default function Admin({ initialRole = 'admin' }) {
   const [isLoading, setIsLoading] = useState(false);
   const [adminUserFilter, setAdminUserFilter] = useState('all');
   const [events, setEvents] = useState([]);
+  const [deletedEvents, setDeletedEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [users, setUsers] = useState([]);
+  const [dangerInput, setDangerInput] = useState({ everything: '', events: '', users: '', guests: '', targetEventId: 'all' });
   const [guests, setGuests] = useState([]);
   const [timeline, setTimeline] = useState([]);
   const [menu, setMenu] = useState([]);
@@ -180,8 +182,27 @@ export default function Admin({ initialRole = 'admin' }) {
     }
 
     const { data } = await query;
-    setEvents(data || []);
+    const allEvents = data || [];
+    setEvents(allEvents.filter(e => !e.is_deleted));
+    setDeletedEvents(allEvents.filter(e => e.is_deleted));
     setIsLoading(false);
+  };
+
+  const deleteEvent = async (id) => {
+    if (!confirm('Are you sure you want to delete this event? It will be moved to the Recycle Bin.')) return;
+    await supabase.from('events').update({ is_deleted: true }).eq('id', id);
+    loadEvents();
+  };
+
+  const restoreEvent = async (id) => {
+    await supabase.from('events').update({ is_deleted: false }).eq('id', id);
+    loadEvents();
+  };
+
+  const permanentlyDeleteEvent = async (id) => {
+    if (!confirm('Are you SURE you want to permanently delete this event? This cannot be undone.')) return;
+    await supabase.from('events').delete().eq('id', id);
+    loadEvents();
   };
 
   useEffect(() => {
@@ -573,14 +594,14 @@ export default function Admin({ initialRole = 'admin' }) {
     );
   }
 
-  const adminBaseTabs = ['events', 'users'];
+  const adminBaseTabs = ['events', 'users', 'recycle', 'danger'];
   const userBaseTabs = ['events'];
-  const baseTabs = (currentUser?.role === 'admin' || role === 'admin') ? adminBaseTabs : userBaseTabs;
+  const baseTabs = isAdmin ? adminBaseTabs : userBaseTabs;
   const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'analytics', 'table_planner', 'photo_queue', 'live_chat', 'reports'];
   const tabs = selectedEvent ? [...baseTabs, ...eventTabs] : baseTabs;
 
   const handleTabClick = (tab) => {
-    if (tab === 'events' || tab === 'users') {
+    if (tab === 'events' || tab === 'users' || tab === 'recycle' || tab === 'danger') {
       setSelectedEvent(null);
     }
     setActiveTab(tab);
@@ -684,7 +705,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}
                 {tab === 'analytics' && '📊'}{tab === 'table_planner' && '🏷️'}{tab === 'photo_queue' && '📸'}{tab === 'live_chat' && '💬'}{tab === 'reports' && '📄'}
               </span>
-              <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{tab}</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{tab.replace('_', ' ')}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
                 <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', fontSize: '10px', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 700, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                   {getTabCount(tab)}
@@ -822,6 +843,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <button onClick={() => openQR(event)} style={{ background: '#dbeafe', color: '#1e40af', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>📱 QR</button>
+                    {isAdmin && <button onClick={() => deleteEvent(event.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>}
                     <button onClick={() => selectEvent(event)} style={{ background: '#fff1f2', color: '#f43f5e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Manage →</button>
                   </div>
                 </div>
@@ -850,6 +872,76 @@ export default function Admin({ initialRole = 'admin' }) {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {activeTab === 'recycle' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Recycle Bin</h2>
+              </div>
+              {deletedEvents.length === 0 && <p style={{ color: '#6b7280', fontSize: '14px' }}>No deleted events.</p>}
+              {deletedEvents.map(event => (
+                <div key={event.id} style={{ background: '#fff1f2', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #fecdd3' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div>
+                      <p style={{ fontWeight: 600, margin: 0, color: '#9f1239' }}>{event.event_name}</p>
+                      <p style={{ color: '#be123c', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => restoreEvent(event.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Restore</button>
+                    <button onClick={() => permanentlyDeleteEvent(event.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete Permanently</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'danger' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', color: '#ef4444' }}>Danger Zone</h2>
+              </div>
+              
+              <div style={{ background: '#fee2e2', padding: '20px', borderRadius: '12px', border: '2px solid #ef4444', marginBottom: '20px' }}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Reset App</h3>
+                <p style={{ fontSize: '13px', color: '#991b1b', marginBottom: '10px' }}>Permanently wipes all events, users (except you), guests, photos, and messages.</p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input placeholder="Type 'deleteeverything' to confirm" value={dangerInput.everything} onChange={(e) => setDangerInput({...dangerInput, everything: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #fca5a5' }} />
+                  <button onClick={async () => { if (dangerInput.everything === 'deleteeverything') { if(confirm('Are you absolutely sure?')) { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteeverything', adminId: currentUser.id}) }); alert('App Reset'); window.location.reload(); } } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                </div>
+              </div>
+
+              <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px' }}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete All Events</h3>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input placeholder="Type 'deleteevents'" value={dangerInput.events} onChange={(e) => setDangerInput({...dangerInput, events: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
+                  <button onClick={async () => { if (dangerInput.events === 'deleteevents') { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteevents'}) }); alert('Events Deleted'); loadEvents(); setDangerInput({...dangerInput, events: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                </div>
+              </div>
+
+              <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px' }}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete All Users</h3>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input placeholder="Type 'deleteusers'" value={dangerInput.users} onChange={(e) => setDangerInput({...dangerInput, users: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
+                  <button onClick={async () => { if (dangerInput.users === 'deleteusers') { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteusers', adminId: currentUser.id}) }); alert('Users Deleted'); loadUsers(); setDangerInput({...dangerInput, users: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                </div>
+              </div>
+
+              <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5' }}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete Guests</h3>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                  <select value={dangerInput.targetEventId} onChange={(e) => setDangerInput({...dangerInput, targetEventId: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <option value="all">All Guests (Platform-wide)</option>
+                    {events.map(e => <option key={e.id} value={e.id}>Guests in: {e.event_name}</option>)}
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input placeholder="Type 'deleteguests'" value={dangerInput.guests} onChange={(e) => setDangerInput({...dangerInput, guests: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
+                  <button onClick={async () => { if (dangerInput.guests === 'deleteguests') { await fetch('/api/admin/danger', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteguests', eventId: dangerInput.targetEventId}) }); alert('Guests Deleted'); setDangerInput({...dangerInput, guests: ''}); } else alert('Type exact confirmation string.'); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Execute</button>
+                </div>
+              </div>
             </div>
           )}
 
