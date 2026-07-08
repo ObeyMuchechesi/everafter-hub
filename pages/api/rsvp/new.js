@@ -5,9 +5,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { eventId, firstName, lastName, dietaryRequirements } = req.body;
+  const { eventId, firstName, lastName, phoneNumber, dietaryRequirements } = req.body;
 
-  if (!eventId || !firstName || !lastName) {
+  if (!eventId || !firstName || !lastName || !phoneNumber) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -63,6 +63,7 @@ export default async function handler(req, res) {
         event_id: eventId,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
+        phone_number: phoneNumber.trim(),
         dietary_requirements: dietaryRequirements || '',
         table_number: assignedTable,
         rsvp_status: 'attending'

@@ -14,6 +14,7 @@ export default function NewRSVP() {
   
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [dietary, setDietary] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -55,6 +56,7 @@ export default function NewRSVP() {
         eventId,
         firstName,
         lastName,
+        phoneNumber,
         dietaryRequirements: dietary
       })
     });
@@ -116,6 +118,10 @@ export default function NewRSVP() {
             <div>
               <label style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '8px', display: 'block' }}>Surname <span style={{color: '#ef4444'}}>*</span></label>
               <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder="Enter your surname" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e5e7eb', fontSize: '15px', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '8px', display: 'block' }}>Phone Number <span style={{color: '#ef4444'}}>*</span></label>
+              <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required placeholder="e.g. 0772764534" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e5e7eb', fontSize: '15px', boxSizing: 'border-box' }} />
             </div>
             <div>
               <label style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '8px', display: 'block' }}>Dietary Requirements</label>

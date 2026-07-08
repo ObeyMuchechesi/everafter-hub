@@ -74,7 +74,7 @@ export default function Admin({ initialRole = 'admin' }) {
   };
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
-  const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' });
+  const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '', phone_number: '' });
   const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
   const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
   const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
@@ -412,12 +412,13 @@ export default function Admin({ initialRole = 'admin' }) {
       event_id: selectedEvent.id, 
       first_name: newGuest.first_name,
       last_name: newGuest.last_name,
+      phone_number: newGuest.phone_number,
       table_number: parseInt(newGuest.table_number),
       dietary_requirements: newGuest.dietary_requirements 
     });
     if (!error) { 
       setShowGuestForm(false); 
-      setNewGuest({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' }); 
+      setNewGuest({ first_name: '', last_name: '', table_number: '', dietary_requirements: '', phone_number: '' }); 
       loadGuests(selectedEvent.id); 
     } else {
       alert('Error: ' + error.message);
@@ -970,6 +971,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
                     <input placeholder="First Name" value={newGuest.first_name} onChange={(e) => setNewGuest({...newGuest, first_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Surname" value={newGuest.last_name} onChange={(e) => setNewGuest({...newGuest, last_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                    <input placeholder="Phone Number (Optional)" type="tel" value={newGuest.phone_number} onChange={(e) => setNewGuest({...newGuest, phone_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                     <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                     <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
@@ -995,6 +997,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#6b7280' }}>
                       <span><strong style={{color:'#374151'}}>Token:</strong> {guest.guest_token ? guest.guest_token.substring(0,6).toUpperCase() : 'N/A'}</span>
+                      {guest.phone_number && <span><strong style={{color:'#374151'}}>Phone:</strong> {guest.phone_number}</span>}
                       <span><strong style={{color:'#374151'}}>RSVP:</strong> <span style={{ color: guest.rsvp_status === 'attending' ? '#10b981' : guest.rsvp_status === 'declined' ? '#ef4444' : '#f59e0b', fontWeight: 600, textTransform: 'capitalize' }}>{guest.rsvp_status || 'pending'}</span></span>
                       <span><strong style={{color:'#374151'}}>Checked In:</strong> {guest.checked_in_at ? new Date(guest.checked_in_at).toLocaleTimeString() : 'No'}</span>
                     </div>
