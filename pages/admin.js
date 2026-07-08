@@ -779,7 +779,7 @@ export default function Admin({ initialRole = 'admin' }) {
                           { url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80', label: 'Nature' },
                           { url: 'https://images.unsplash.com/photo-1473177104440-ffee2f376098?auto=format&fit=crop&w=1920&q=80', label: 'Minimal' },
                           { url: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?auto=format&fit=crop&w=1920&q=80', label: 'Neon' },
-                          { url: 'https://images.unsplash.com/photo-1542314831-c6a4d27ce006?auto=format&fit=crop&w=1920&q=80', label: 'Luxury' },
+                          { url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=80', label: 'Luxury' },
                           { url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1920&q=80', label: 'Abstract' },
                         ].map((theme, i) => (
                           <div 
