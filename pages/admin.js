@@ -598,7 +598,11 @@ export default function Admin({ initialRole = 'admin' }) {
   const userBaseTabs = ['events'];
   const baseTabs = isAdmin ? adminBaseTabs : userBaseTabs;
   const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'analytics', 'table_planner', 'photo_queue', 'live_chat', 'reports'];
-  const tabs = selectedEvent ? [...baseTabs, ...eventTabs] : baseTabs;
+  
+  let tabs = baseTabs;
+  if (selectedEvent) {
+    tabs = isAdmin ? ['events', 'users', ...eventTabs] : ['events', ...eventTabs];
+  }
 
   const handleTabClick = (tab) => {
     if (tab === 'events' || tab === 'users' || tab === 'recycle' || tab === 'danger') {
