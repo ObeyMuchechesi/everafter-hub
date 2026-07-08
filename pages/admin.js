@@ -40,7 +40,10 @@ export default function Admin({ initialRole = 'admin' }) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [editingMenu, setEditingMenu] = useState(null);
 
-  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '' });
+  const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '', number_of_tables: 10, chairs_per_table: 10 });
+  const [previewCover, setPreviewCover] = useState(null);
+  const [editingGuestId, setEditingGuestId] = useState(null);
+  const [editGuestTable, setEditGuestTable] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
   const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
 
@@ -50,10 +53,20 @@ export default function Admin({ initialRole = 'admin' }) {
     setUploadingCover(true);
     const reader = new FileReader();
     reader.onloadend = () => {
-      setNewEvent({ ...newEvent, cover_photo: reader.result });
+      setPreviewCover(reader.result);
       setUploadingCover(false);
     };
     reader.readAsDataURL(file);
+  };
+  
+  const confirmCoverUpload = (e) => {
+    e.preventDefault();
+    setNewEvent({ ...newEvent, cover_photo: previewCover });
+  };
+  
+  const cancelCoverUpload = (e) => {
+    e.preventDefault();
+    setPreviewCover(null);
   };
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
@@ -269,7 +282,8 @@ export default function Admin({ initialRole = 'admin' }) {
 
       if (!error && data) {
         setShowEventForm(false);
-        setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '' });
+        setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '', number_of_tables: 10, chairs_per_table: 10 });
+        setPreviewCover(null);
         setNewUserForEvent({ email: '', full_name: '', password: '' });
         loadEvents(currentUser);
         setSelectedEvent(data);
@@ -365,6 +379,30 @@ export default function Admin({ initialRole = 'admin' }) {
       setShowGuestForm(false); 
       setNewGuest({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' }); 
       loadGuests(selectedEvent.id); 
+    } else {
+      alert('Error: ' + error.message);
+    }
+    setIsLoading(false);
+  };
+
+  const updateGuestTableNumber = async (guestId) => {
+    setIsLoading(true);
+    const { error } = await supabase.from('guests').update({ table_number: parseInt(editGuestTable) }).eq('id', guestId);
+    if (!error) {
+      setEditingGuestId(null);
+      setEditGuestTable('');
+      loadGuests(selectedEvent.id);
+    } else {
+      alert('Error: ' + error.message);
+    }
+    setIsLoading(false);
+  };
+
+  const toggleGuestReserved = async (guestId, currentStatus) => {
+    setIsLoading(true);
+    const { error } = await supabase.from('guests').update({ is_reserved: !currentStatus }).eq('id', guestId);
+    if (!error) {
+      loadGuests(selectedEvent.id);
     } else {
       alert('Error: ' + error.message);
     }
@@ -674,6 +712,15 @@ export default function Admin({ initialRole = 'admin' }) {
                     <input placeholder="Venue" value={newEvent.venue} onChange={(e) => setNewEvent({...newEvent, venue: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="URL slug" value={newEvent.slug} onChange={(e) => setNewEvent({...newEvent, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Number of Tables</label>
+                      <input type="number" value={newEvent.number_of_tables} onChange={(e) => setNewEvent({...newEvent, number_of_tables: parseInt(e.target.value)})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required min="1" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Chairs per Table</label>
+                      <input type="number" value={newEvent.chairs_per_table} onChange={(e) => setNewEvent({...newEvent, chairs_per_table: parseInt(e.target.value)})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required min="1" />
+                    </div>
+                    
                     <div style={{ gridColumn: '1/-1', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Background Theme</label>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
@@ -708,10 +755,19 @@ export default function Admin({ initialRole = 'admin' }) {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', gridColumn: '1/-1' }}>
                       <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Cover Photo (Optional)</label>
                       <input type="file" accept="image/*" onChange={handleCoverUpload} disabled={uploadingCover} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                       {uploadingCover && <span style={{ fontSize: '12px', color: '#f43f5e' }}>Processing...</span>}
+                      {previewCover && !newEvent.cover_photo && (
+                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                          <img src={previewCover} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={confirmCoverUpload} style={{ background: '#10b981', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Upload & Save Photo</button>
+                            <button onClick={cancelCoverUpload} style={{ background: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                          </div>
+                        </div>
+                      )}
                       {newEvent.cover_photo && <span style={{ fontSize: '12px', color: '#10b981' }}>Cover photo added!</span>}
                     </div>
 
@@ -780,7 +836,10 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Guests — {selectedEvent.event_name}</h2>
-                <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/new/${selectedEvent.id}`); alert('Event RSVP link copied! Send this to all guests.'); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }}>🔗 Copy Event RSVP Link</button>
+                  <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
+                </div>
               </div>
               {showGuestForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
@@ -798,7 +857,16 @@ export default function Admin({ initialRole = 'admin' }) {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontWeight: 700, fontSize: '15px' }}>{guest.first_name} {guest.last_name}</span>
-                      <span style={{ color: '#6b7280', fontSize: '13px', background: '#f3f4f6', padding: '2px 8px', borderRadius: '12px' }}>Table {guest.table_number}</span>
+                      {editingGuestId === guest.id ? (
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                          <input type="number" value={editGuestTable} onChange={(e) => setEditGuestTable(e.target.value)} style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                          <button onClick={() => updateGuestTableNumber(guest.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
+                          <button onClick={() => setEditingGuestId(null)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Cancel</button>
+                        </div>
+                      ) : (
+                        <span onClick={() => { setEditingGuestId(guest.id); setEditGuestTable(guest.table_number); }} style={{ color: '#6b7280', fontSize: '13px', background: '#f3f4f6', padding: '2px 8px', borderRadius: '12px', cursor: 'pointer' }} title="Click to edit table">Table {guest.table_number} ✎</span>
+                      )}
+                      {guest.is_reserved && <span style={{ background: '#4c1d95', color: '#ede9fe', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Reserved</span>}
                       {guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>{guest.dietary_requirements}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#6b7280' }}>
@@ -808,6 +876,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => toggleGuestReserved(guest.id, guest.is_reserved)} style={{ background: guest.is_reserved ? '#ede9fe' : '#f3f4f6', color: guest.is_reserved ? '#5b21b6' : '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>{guest.is_reserved ? 'Unreserve' : 'Reserve'}</button>
                     <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/${guest.guest_token}`); alert('RSVP link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>🔗 Copy RSVP</button>
                     <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
                   </div>

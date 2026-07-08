@@ -6,7 +6,7 @@ import { lookupGuest } from '../lib/guestLookup';
 
 export default function EventPage() {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, token } = router.query;
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
@@ -65,7 +65,7 @@ export default function EventPage() {
     setPhotos(eventPhotos || []);
     setLiveChat(chatMessages || []);
 
-    setEvent({
+    const loadedEvent = {
       id: eventData.id,
       couple: eventData.host_name || 'Guest',
       date: new Date(eventData.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -83,23 +83,42 @@ export default function EventPage() {
       })) || [],
       timeline: timeline?.map(t => ({ time: t.event_time?.slice(0, 5), event: t.title, location: t.location || '' })) || [],
       menu: { starter: menu.starter || '', main: menu.main || '', dessert: menu.dessert || '' }
-    });
+    };
+    setEvent(loadedEvent);
+
+    if (token) {
+      const found = loadedEvent.guests.find(g => g.token === token);
+      if (found) {
+        setGuest(found);
+        localStorage.setItem(`everafter_guest_${slug}`, JSON.stringify(found));
+        await supabase.from('guests').update({ checked_in_at: new Date().toISOString() }).eq('id', found.id);
+      }
+    }
+    
     setLoading(false);
   }
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     
-    const found = lookupGuest(event.guests, firstName, lastName);
-    if (found) { 
+    const matches = event.guests.filter(g => 
+      g.firstName.toLowerCase() === firstName.toLowerCase().trim() && 
+      g.lastName.toLowerCase() === lastName.toLowerCase().trim()
+    );
+
+    if (matches.length === 1) { 
+      const found = matches[0];
       setGuest(found); 
       setError(''); 
       localStorage.setItem(`everafter_guest_${id}`, JSON.stringify(found));
       
       // Record check-in time
       await supabase.from('guests').update({ checked_in_at: new Date().toISOString() }).eq('id', found.id);
+    } else if (matches.length > 1) {
+      setError('Multiple guests found with this name. Please use your unique check-in link provided during RSVP.');
+    } else { 
+      setError('We couldn\'t find your name on the guest list. Please check spelling or contact the hosts.'); 
     }
-    else { setError('We couldn\'t find your name on the guest list. Please check spelling or contact the hosts.'); }
   };
 
   const submitMessage = async (e) => {
