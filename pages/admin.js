@@ -111,6 +111,7 @@ export default function Admin({ initialRole = 'admin' }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items', filter: `event_id=eq.${selectedEvent.id}` }, () => loadMenu(selectedEvent.id, true))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'photos', filter: `event_id=eq.${selectedEvent.id}` }, () => loadPhotos(selectedEvent.id, true))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'guestbook', filter: `event_id=eq.${selectedEvent.id}` }, () => loadMessages(selectedEvent.id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_chat_messages', filter: `event_id=eq.${selectedEvent.id}` }, () => loadLiveChat(selectedEvent.id))
       .subscribe();
 
     return () => {
