@@ -675,10 +675,12 @@ export default function Admin({ initialRole = 'admin' }) {
           <div style={{ background: 'white', padding: '30px', borderRadius: '16px', width: '400px' }}>
             <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px' }}>Change Password</h3>
             <form onSubmit={changePassword}>
-              <select value={passwordData.userId} onChange={(e) => setPasswordData({...passwordData, userId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required>
-                <option value="">Select User</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>)}
-              </select>
+              {isAdmin && (
+                <select value={passwordData.userId} onChange={(e) => setPasswordData({...passwordData, userId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required>
+                  <option value="">Select User</option>
+                  {users.map(u => <option key={u.id} value={u.id}>{u.full_name} ({u.email})</option>)}
+                </select>
+              )}
               <input type="password" placeholder="New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="submit" style={{ flex: 1, background: '#f59e0b', color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Update</button>
@@ -846,7 +848,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
                       <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
-                      <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>Assigned to: {users.find((u) => u.id === event.user_id)?.full_name || 'Unassigned'}</p>
+                      {isAdmin && <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>Assigned to: {users.find((u) => u.id === event.user_id)?.full_name || 'Unassigned'}</p>}
                       <code style={{ fontSize: '11px', color: '#f43f5e' }}>event?id={event.slug}</code>
                     </div>
                   </div>
