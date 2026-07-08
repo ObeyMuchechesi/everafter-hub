@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabase';
 import { motion } from 'framer-motion';
+import FullPageLoader from '../../../components/FullPageLoader';
+import Spinner from '../../../components/Spinner';
 
 export default function NewRSVP() {
   const router = useRouter();
@@ -15,7 +17,6 @@ export default function NewRSVP() {
   const [dietary, setDietary] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [checkInLink, setCheckInLink] = useState('');
 
   useEffect(() => {
     if (eventId) {
@@ -61,8 +62,6 @@ export default function NewRSVP() {
     const result = await response.json();
     if (response.ok && result.success) {
       setSuccess(true);
-      const baseUrl = window.location.origin;
-      setCheckInLink(`${baseUrl}/event?id=${event.slug}&token=${result.guest_token}`);
     } else {
       alert(result.error || 'Failed to submit RSVP');
     }
@@ -70,11 +69,7 @@ export default function NewRSVP() {
   }
 
   if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf2f8' }}>
-        <div style={{ fontSize: '40px', animation: 'spin 1s linear infinite' }}>⏳</div>
-      </div>
-    );
+    return <FullPageLoader text="Loading Invitation..." />;
   }
 
   if (error || !event) {
@@ -127,8 +122,8 @@ export default function NewRSVP() {
               <input type="text" value={dietary} onChange={(e) => setDietary(e.target.value)} placeholder="e.g. Vegetarian, Nut allergy (leave blank if none)" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e5e7eb', fontSize: '15px', boxSizing: 'border-box' }} />
             </div>
 
-            <button type="submit" disabled={isSubmitting} style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '16px', borderRadius: '12px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: isSubmitting ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(244,63,94,0.3)', marginTop: '8px' }}>
-              {isSubmitting ? 'Reserving...' : 'Submit RSVP'}
+            <button type="submit" disabled={isSubmitting} style={{ background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '16px', borderRadius: '12px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: isSubmitting ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(244,63,94,0.3)', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {isSubmitting ? <><Spinner size="20px" /> Reserving...</> : 'Submit RSVP'}
             </button>
           </form>
         )}

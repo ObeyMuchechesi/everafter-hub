@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { lookupGuest } from '../lib/guestLookup';
+import FullPageLoader from '../components/FullPageLoader';
+import Spinner from '../components/Spinner';
 
 export default function EventPage() {
   const router = useRouter();
@@ -41,8 +43,23 @@ export default function EventPage() {
     }
   }, [id, router.isReady]);
 
-  async function loadEvent(slug) {
-    setLoading(true);
+  useEffect(() => {
+    if (!event?.id) return;
+    const channel = supabase.channel(`public:event-${event.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'timeline_items', filter: `event_id=eq.${event.id}` }, () => loadEvent(id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items', filter: `event_id=eq.${event.id}` }, () => loadEvent(id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'guestbook', filter: `event_id=eq.${event.id}` }, () => loadEvent(id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'photos', filter: `event_id=eq.${event.id}` }, () => loadEvent(id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_chat_messages', filter: `event_id=eq.${event.id}` }, () => loadEvent(id, true))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [event?.id, id]);
+
+  async function loadEvent(slug, isBackground = false) {
+    if (!isBackground) setLoading(true);
     const { data: eventData } = await supabase
       .from('events')
       .select('*')
@@ -132,7 +149,7 @@ export default function EventPage() {
       message: newMessage
     }).select().single();
     if (!error && data) {
-      setMessages([data, ...messages]);
+      // Real-time will handle the update, but we can optimistically clear
       setNewMessage('');
     }
     setIsSubmitting(false);
@@ -191,11 +208,7 @@ export default function EventPage() {
   };
 
   if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff1f2' }}>
-        <p style={{ fontSize: '40px', animation: 'spin 1s linear infinite' }}>⏳</p>
-      </div>
-    );
+    return <FullPageLoader text="Loading Event..." />;
   }
 
   if (!event) {
@@ -351,7 +364,9 @@ export default function EventPage() {
                   
                   <form onSubmit={submitMessage} style={{ marginBottom: '30px' }}>
                     <textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Write your message here..." style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', height: '100px', boxSizing: 'border-box', fontSize: '15px', resize: 'vertical' }} required></textarea>
-                    <button type="submit" disabled={isSubmitting} style={{ width: '100%', marginTop: '12px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '15px' }}>{isSubmitting ? 'Sending...' : 'Submit Message'}</button>
+                    <button type="submit" disabled={isSubmitting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', marginTop: '12px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '15px' }}>
+                      {isSubmitting ? <><Spinner size="20px" /> Sending...</> : 'Submit Message'}
+                    </button>
                   </form>
 
                   <div>

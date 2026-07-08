@@ -4,6 +4,8 @@ import { LogOut, Key } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
+import FullPageLoader from '../components/FullPageLoader';
+import Spinner from '../components/Spinner';
 
 const YOUR_USER_ID = '2b4afcb9-4075-42a5-a612-949496562698';
 const baseUrl = 'https://everafter-hub.vercel.app';
@@ -100,6 +102,21 @@ export default function Admin({ initialRole = 'admin' }) {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!selectedEvent?.id) return;
+    const channel = supabase.channel(`public:admin-${selectedEvent.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'guests', filter: `event_id=eq.${selectedEvent.id}` }, () => loadGuests(selectedEvent.id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'timeline_items', filter: `event_id=eq.${selectedEvent.id}` }, () => loadTimeline(selectedEvent.id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items', filter: `event_id=eq.${selectedEvent.id}` }, () => loadMenu(selectedEvent.id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'photos', filter: `event_id=eq.${selectedEvent.id}` }, () => loadPhotos(selectedEvent.id, true))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'guestbook', filter: `event_id=eq.${selectedEvent.id}` }, () => loadMessages(selectedEvent.id, true))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedEvent?.id]);
 
   const isAdmin = currentUser?.role === 'admin' || role === 'admin';
   const roleTheme = isAdmin
@@ -595,11 +612,7 @@ export default function Admin({ initialRole = 'admin' }) {
         </div>
       </header>
 
-      {isLoading && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ fontSize: '40px', animation: 'spin 1s linear infinite' }}>⏳</div>
-        </div>
-      )}
+      {isLoading && <FullPageLoader text="Loading Workspace..." />}
 
       {showQRModal && qrEvent && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
@@ -765,7 +778,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', gridColumn: '1/-1' }}>
                       <label style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'bold' }}>Cover Photo (Optional)</label>
                       <input type="file" accept="image/*" onChange={handleCoverUpload} disabled={uploadingCover} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
-                      {uploadingCover && <span style={{ fontSize: '12px', color: '#f43f5e' }}>Processing...</span>}
+                      {uploadingCover && <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#f43f5e', fontWeight: 600 }}><Spinner size="16px" /> Processing...</span>}
                       {previewCover && !newEvent.cover_photo && (
                         <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                           <img src={previewCover} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
@@ -974,7 +987,9 @@ export default function Admin({ initialRole = 'admin' }) {
                     <img src={galleryPhotoPreview} alt="Preview" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '12px', border: '1px solid #e5e7eb' }} />
                     <input type="text" placeholder="Caption (optional)" value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', boxSizing: 'border-box' }} />
                     <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-                      <button onClick={confirmGalleryPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>{uploadingPhoto ? 'Uploading...' : 'Upload & Save'}</button>
+                      <button onClick={confirmGalleryPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>
+                        {uploadingPhoto ? <><Spinner size="18px" /> Uploading...</> : 'Upload & Save'}
+                      </button>
                       <button onClick={cancelGalleryPhotoUpload} disabled={uploadingPhoto} style={{ flex: 1, background: '#ef4444', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', fontWeight: 600 }}>Cancel</button>
                     </div>
                   </div>
