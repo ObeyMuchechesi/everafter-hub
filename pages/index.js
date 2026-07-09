@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { lookupGuest } from '../lib/guestLookup';
+import { Sparkles, Star, Heart, Flower2, User } from 'lucide-react';
+import Particles from '../components/Particles';
 
 export default function EventLanding({ event }) {
   const [name, setName] = useState('');
@@ -16,30 +18,24 @@ export default function EventLanding({ event }) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
-        background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)'
+        background: 'var(--bg-color)',
+        position: 'relative'
       }}>
-        <div style={{
-          background: 'white',
+        <Particles count={15} />
+        <div className="glass-card" style={{
           borderRadius: '24px',
           padding: '48px',
           width: '100%',
           maxWidth: '460px',
           textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
+          position: 'relative',
+          zIndex: 10
         }}>
-          <h1 style={{ fontSize: '32px', fontFamily: 'Playfair Display, serif', marginBottom: '12px' }}>EverAfter Hub</h1>
-          <p style={{ color: '#6b7280', marginBottom: '24px' }}>Open your event link or visit the admin page to manage this experience.</p>
+          <h1 style={{ fontSize: '32px', fontFamily: 'var(--font-serif)', marginBottom: '12px', color: 'var(--text-main)' }}>EverAfter Hub</h1>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Open your event link or visit the admin page to manage this experience.</p>
           <button
             onClick={() => router.push('/admin')}
-            style={{
-              background: 'linear-gradient(to right, #f43f5e, #ec4899)',
-              color: 'white',
-              padding: '12px 20px',
-              borderRadius: '9999px',
-              border: 'none',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
+            className="btn-primary"
           >
             Go to Admin
           </button>
@@ -50,10 +46,12 @@ export default function EventLanding({ event }) {
 
   if (router.isFallback) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)' }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="animate-spin" style={{ fontSize: '36px', marginBottom: '16px' }}>🌸</div>
-          <p style={{ color: '#6b7280' }}>Loading...</p>
+          <div className="animate-spin" style={{ display: 'inline-block', marginBottom: '16px', color: 'var(--accent-primary)' }}>
+            <Flower2 size={36} />
+          </div>
+          <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
         </div>
       </div>
     );
@@ -88,14 +86,15 @@ export default function EventLanding({ event }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '16px',
-      background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)',
+      background: 'var(--bg-color)',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      <div style={{ position: 'absolute', top: '40px', left: '40px', fontSize: '36px', opacity: 0.3 }} className="animate-float">🌸</div>
-      <div style={{ position: 'absolute', top: '80px', right: '60px', fontSize: '28px', opacity: 0.3, animationDelay: '1s' }} className="animate-float">✨</div>
-      <div style={{ position: 'absolute', bottom: '80px', left: '80px', fontSize: '28px', opacity: 0.3, animationDelay: '2s' }} className="animate-float">🌿</div>
-      <div style={{ position: 'absolute', bottom: '40px', right: '40px', fontSize: '36px', opacity: 0.3, animationDelay: '0.5s' }} className="animate-float">💫</div>
+      <Particles count={25} />
+      <div style={{ position: 'absolute', top: '40px', left: '40px', color: 'var(--accent-glow)' }} className="animate-float"><Flower2 size={36} /></div>
+      <div style={{ position: 'absolute', top: '80px', right: '60px', color: 'var(--accent-glow)', animationDelay: '1s' }} className="animate-float"><Sparkles size={28} /></div>
+      <div style={{ position: 'absolute', bottom: '80px', left: '80px', color: 'var(--accent-glow)', animationDelay: '2s' }} className="animate-float"><Heart size={28} /></div>
+      <div style={{ position: 'absolute', bottom: '40px', right: '40px', color: 'var(--accent-glow)', animationDelay: '0.5s' }} className="animate-float"><Star size={36} /></div>
 
       <div className="glass-card animate-fadeIn" style={{
         borderRadius: '24px',
@@ -108,24 +107,24 @@ export default function EventLanding({ event }) {
         <div style={{
           width: '80px',
           height: '4px',
-          background: 'linear-gradient(to right, #fb7185, #fbbf24)',
+          background: 'var(--accent-primary)',
           borderRadius: '9999px',
           margin: '0 auto 24px'
         }}></div>
         
         <h1 style={{
           fontSize: '36px',
-          fontFamily: 'Playfair Display, serif',
+          fontFamily: 'var(--font-serif)',
           textAlign: 'center',
-          color: '#1f2937',
+          color: 'var(--text-main)',
           marginBottom: '8px'
         }}>
           {event.couple}
         </h1>
-        <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '8px', fontWeight: 300 }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 300 }}>
           {event.date}
         </p>
-        <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '14px', marginBottom: '32px', fontWeight: 300 }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', marginBottom: '32px', fontWeight: 300 }}>
           {event.venue}
         </p>
 
@@ -134,7 +133,7 @@ export default function EventLanding({ event }) {
             display: 'block',
             fontSize: '14px',
             fontWeight: 500,
-            color: '#4b5563',
+            color: 'var(--text-muted)',
             marginBottom: '8px',
             textAlign: 'center',
             textTransform: 'uppercase',
@@ -150,7 +149,9 @@ export default function EventLanding({ event }) {
               onChange={(e) => { setName(e.target.value); setError(''); }}
               style={{
                 width: '100%',
-                border: '2px solid #e5e7eb',
+                border: '2px solid var(--border-glow)',
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'var(--text-main)',
                 borderRadius: '12px',
                 padding: '16px 16px 16px 48px',
                 fontSize: '16px',
@@ -161,14 +162,16 @@ export default function EventLanding({ event }) {
               placeholder="Enter your full name..."
               required
             />
-            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px' }}>👤</span>
+            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+              <User size={20} />
+            </span>
           </div>
 
           {error && (
             <div style={{
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#dc2626',
+              background: 'var(--accent-glow)',
+              border: '1px solid var(--accent-primary)',
+              color: 'var(--accent-primary)',
               padding: '12px',
               borderRadius: '12px',
               fontSize: '14px',
@@ -184,7 +187,7 @@ export default function EventLanding({ event }) {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginTop: '24px', fontWeight: 300 }}>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '24px', fontWeight: 300 }}>
           Your table number will appear instantly
         </p>
       </div>
