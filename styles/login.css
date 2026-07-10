@@ -417,12 +417,31 @@
         padding: 20px;
     }
     
-    .left-section, .right-section {
+    .right-section {
         flex: none;
         width: 100%;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+        border-radius: 12px;
     }
     
-    .left-section {
-        padding: 40px 20px;
+    .brand-logo {
+        margin-top: -30px;
+        margin-bottom: -80px;
+        max-width: 80%;
+    }
+    
+    .tagline-text {
+        font-size: 14px;
+    }
+    
+    .brand-description {
+        font-size: 13px;
+        margin-top: 16px !important;
     }
 }
