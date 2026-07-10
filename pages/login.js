@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -7,6 +8,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('admin');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,23 +42,102 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1f2937, #111827, #312e81)', padding: '16px' }}>
-      <div style={{ background: 'white', borderRadius: '24px', padding: '36px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '8px', fontSize: '30px' }}>EverAfter Hub</h1>
-        <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '20px' }}>Choose your access level</p>
+    <>
+      <Head>
+        <title>EverAfter Hub - Login</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+      </Head>
+      <div className="login-body-wrapper">
+        <div className="background-container"></div>
+        
+        <div className="main-container">
+            <div className="right-section" style={{ margin: '0 auto' }}>
+                <div className="login-card">
+                    <div className="brand-header">
+                        <img src="/logo.png" alt="EverAfter Hub Logo" className="brand-logo" />
+                        <div className="tagline-container">
+                            <span className="tagline-text">Every moment, beautifully connected</span>
+                        </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setMode('admin')} 
+                        style={{ flex: 1, padding: '10px', borderRadius: '8px', border: mode === 'admin' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: mode === 'admin' ? '#fff0f3' : 'white', color: mode === 'admin' ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '13px', transition: 'all 0.2s' }}
+                      >
+                        Admin
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setMode('user')} 
+                        style={{ flex: 1, padding: '10px', borderRadius: '8px', border: mode === 'user' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: mode === 'user' ? '#fff0f3' : 'white', color: mode === 'user' ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '13px', transition: 'all 0.2s' }}
+                      >
+                        User
+                      </button>
+                    </div>
 
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-          <button type="button" onClick={() => setMode('admin')} style={{ flex: 1, padding: '10px', borderRadius: '999px', border: mode === 'admin' ? 'none' : '1px solid #e5e7eb', background: mode === 'admin' ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'white', color: mode === 'admin' ? 'white' : '#4b5563', fontWeight: 600, cursor: 'pointer' }}>Admin</button>
-          <button type="button" onClick={() => setMode('user')} style={{ flex: 1, padding: '10px', borderRadius: '999px', border: mode === 'user' ? 'none' : '1px solid #e5e7eb', background: mode === 'user' ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'white', color: mode === 'user' ? 'white' : '#4b5563', fontWeight: 600, cursor: 'pointer' }}>User</button>
+                    <form className="login-form" onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Email Address</label>
+                            <div className="input-container">
+                                <span className="material-symbols-outlined input-icon">mail</span>
+                                <input 
+                                  type="email" 
+                                  placeholder="Enter your email" 
+                                  value={email} 
+                                  onChange={(e) => setEmail(e.target.value)} 
+                                  required 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Password</label>
+                            <div className="input-container">
+                                <span className="material-symbols-outlined input-icon">lock</span>
+                                <input 
+                                  type={showPassword ? "text" : "password"} 
+                                  placeholder="Enter your password" 
+                                  value={password} 
+                                  onChange={(e) => setPassword(e.target.value)} 
+                                  required 
+                                />
+                                <span 
+                                  className="material-symbols-outlined password-toggle"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                >
+                                  {showPassword ? 'visibility_off' : 'visibility'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {error && <p style={{ color: '#d11f4d', fontSize: '13px', marginBottom: '16px', textAlign: 'center', background: '#fff0f3', padding: '10px', borderRadius: '6px', fontWeight: 500 }}>{error}</p>}
+
+                        <div className="form-actions">
+                            <label className="remember-me">
+                                <input type="checkbox" defaultChecked />
+                                <span className="custom-checkbox">
+                                    <span className="material-symbols-outlined check-icon">check</span>
+                                </span>
+                                Remember me
+                            </label>
+                        </div>
+
+                        <button type="submit" className="sign-in-btn">
+                            Sign In
+                            <span className="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </form>
+
+                    <p className="brand-description" style={{ marginTop: '24px', marginBottom: '0' }}>
+                        The all-in-one platform to create unforgettable<br/>
+                        digital experiences for your special events.
+                    </p>
+                </div>
+            </div>
         </div>
-
-        <form onSubmit={handleSubmit}>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '12px', boxSizing: 'border-box' }} required />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', marginBottom: '14px', boxSizing: 'border-box' }} required />
-          {error && <p style={{ color: '#dc2626', fontSize: '14px', marginBottom: '12px', textAlign: 'center' }}>{error}</p>}
-          <button type="submit" style={{ width: '100%', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer' }}>Sign In</button>
-        </form>
       </div>
-    </div>
+    </>
   );
 }
