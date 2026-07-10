@@ -19,12 +19,6 @@ export default function NewRSVP() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (eventId) {
-      loadEvent(eventId);
-    }
-  }, [eventId]);
-
   async function loadEvent(id) {
     setLoading(true);
     const { data, error } = await supabase
@@ -40,6 +34,12 @@ export default function NewRSVP() {
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent(eventId);
+    }
+  }, [eventId]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -102,7 +102,7 @@ export default function NewRSVP() {
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
             <h2 style={{ fontFamily: 'Playfair Display, serif', color: '#10b981', marginBottom: '12px' }}>RSVP Confirmed!</h2>
-            <p style={{ color: '#4b5563', lineHeight: 1.6 }}>Thank you, {firstName}! You've been successfully added to the guest list and a seat has been reserved for you.</p>
+            <p style={{ color: '#4b5563', lineHeight: 1.6 }}>Thank you, {firstName}! You&apos;ve been successfully added to the guest list and a seat has been reserved for you.</p>
             
             <div style={{ marginTop: '24px', background: '#f3f4f6', padding: '20px', borderRadius: '12px' }}>
               <p style={{ fontWeight: 600, color: '#374151', marginBottom: '8px', fontSize: '14px' }}>We look forward to seeing you!</p>
