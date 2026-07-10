@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import Particles from '../components/Particles';
-import { Sparkles, Camera, MapPin, Map } from 'lucide-react';
 import FullPageLoader from '../components/FullPageLoader';
 import Spinner from '../components/Spinner';
 
