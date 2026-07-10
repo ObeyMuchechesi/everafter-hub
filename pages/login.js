@@ -7,7 +7,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mode, setMode] = useState('admin');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -29,17 +28,8 @@ export default function LoginPage() {
     }
 
     const role = result.user.role || (email.toLowerCase() === 'admin@everafter.com' ? 'admin' : 'user');
-    if (mode === 'admin' && role !== 'admin') {
-      setError('This account is not an admin account.');
-      return;
-    }
 
-    if (mode === 'user' && role === 'admin') {
-      setError('Use the admin login option for admin accounts.');
-      return;
-    }
-
-    router.push({ pathname: '/admin', query: { role: mode } });
+    router.push({ pathname: '/admin', query: { role: role } });
   };
 
   return (
@@ -59,23 +49,6 @@ export default function LoginPage() {
                         <div className="tagline-container">
                             <span className="tagline-text">Every moment, beautifully connected</span>
                         </div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-                      <button 
-                        type="button" 
-                        onClick={() => setMode('admin')} 
-                        style={{ flex: 1, padding: '10px', borderRadius: '8px', border: mode === 'admin' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: mode === 'admin' ? '#fff0f3' : 'white', color: mode === 'admin' ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '13px', transition: 'all 0.2s' }}
-                      >
-                        Admin
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => setMode('user')} 
-                        style={{ flex: 1, padding: '10px', borderRadius: '8px', border: mode === 'user' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: mode === 'user' ? '#fff0f3' : 'white', color: mode === 'user' ? 'var(--primary-color)' : 'var(--text-muted)', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '13px', transition: 'all 0.2s' }}
-                      >
-                        User
-                      </button>
                     </div>
 
                     <form className="login-form" onSubmit={handleSubmit}>
