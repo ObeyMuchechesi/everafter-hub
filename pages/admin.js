@@ -101,7 +101,10 @@ export default function Admin({ initialRole = 'admin' }) {
         if (user.role === 'admin') loadUsers();
       } catch (e) {
         console.error("Failed to parse stored user", e);
+        router.push('/login');
       }
+    } else {
+      router.push('/login');
     }
   }, []);
 
@@ -562,35 +565,8 @@ export default function Admin({ initialRole = 'admin' }) {
 
   if (!loggedIn) {
     return (
-      <div className="login-background" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          style={{ background: 'white', padding: '40px', borderRadius: '24px', maxWidth: '400px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
-        >
-          <h2 style={{ fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '8px', fontSize: '28px' }}>EverAfter Hub</h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '32px', fontSize: '14px' }}>User Login Workspace</p>
-          <form onSubmit={handleLogin}>
-            <div className="floating-input-group">
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder=" " id="login-email" required />
-              <label htmlFor="login-email">Email</label>
-            </div>
-            <div className="floating-input-group">
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder=" " id="login-password" required />
-              <label htmlFor="login-password">Password</label>
-            </div>
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit" 
-              style={{ width: '100%', background: roleTheme.primary, color: 'white', padding: '16px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer', marginTop: '8px' }}
-            >
-              {isLoading ? 'Authenticating...' : 'Login'}
-            </motion.button>
-          </form>
-        </motion.div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff0f3' }}>
+        <p style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', color: '#f43f5e' }}>Loading workspace...</p>
       </div>
     );
   }

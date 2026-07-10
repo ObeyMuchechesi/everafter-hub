@@ -28,6 +28,8 @@ export default function LoginPage() {
     }
 
     const role = result.user.role || (email.toLowerCase() === 'admin@everafter.com' ? 'admin' : 'user');
+    const user = { ...result.user, role };
+    localStorage.setItem('everafter_admin_user', JSON.stringify(user));
 
     router.push({ pathname: '/admin', query: { role: role } });
   };
