@@ -11,6 +11,11 @@ export default function EventPage() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (eventId) loadEvent(eventId);
+  }, [eventId, router.isReady]);
+
   async function loadEvent(slug) {
     const { data: eventData } = await supabase
       .from('events')
@@ -32,10 +37,6 @@ export default function EventPage() {
     setLoading(false);
   }
 
-  useEffect(() => {
-    if (!router.isReady) return;
-    if (eventId) loadEvent(eventId);
-  }, [eventId, router.isReady]);
   if (loading) return <div style={{ minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#fff1f2' }}><p>🌸</p></div>;
   if (!event) return <div style={{ minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#fff1f2' }}><div style={{textAlign:'center'}}><h1>404</h1><p>Event not found</p></div></div>;
 

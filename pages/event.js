@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
-import Particles from '../components/Particles';
+import { lookupGuest } from '../lib/guestLookup';
 import FullPageLoader from '../components/FullPageLoader';
 import Spinner from '../components/Spinner';
 
@@ -410,24 +409,22 @@ export default function EventPage() {
   }
 
   return (
-    <div className="login-background" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundColor: 'var(--bg-color)', backgroundImage: event.backgroundTheme ? `url(${event.backgroundTheme})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', position: 'relative' }}>
-      <Particles count={20} />
+    <div className="login-background" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backgroundImage: event.backgroundTheme ? `url(${event.backgroundTheme})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="glass-card"
-        style={{ borderRadius: '24px', padding: '40px 30px', maxWidth: '420px', width: '100%', position: 'relative', zIndex: 10 }}
+        style={{ background: 'white', borderRadius: '24px', padding: '40px 30px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
       >
-        <div style={{ width: '60px', height: '4px', background: 'var(--accent-primary)', borderRadius: '9999px', margin: '0 auto 24px' }}></div>
-        <h1 style={{ fontSize: '32px', fontFamily: 'var(--font-serif)', textAlign: 'center', marginBottom: '4px', color: 'var(--text-main)' }}>{event.couple}</h1>
-        <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '32px', fontSize: '14px', fontWeight: 400 }}>{event.date}</p>
+        <div style={{ width: '60px', height: '4px', background: 'linear-gradient(to right, #fb7185, #fbbf24)', borderRadius: '9999px', margin: '0 auto 24px' }}></div>
+        <h1 style={{ fontSize: '32px', fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '4px', color: '#1f2937' }}>{event.couple}</h1>
+        <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '32px', fontSize: '14px', fontWeight: 400 }}>{event.date}</p>
         
         {requiresPhoneVerification ? (
           <form onSubmit={handlePhoneSubmit}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '16px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px' }}>Verify Identity</label>
-            <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-main)', marginBottom: '20px' }}>Multiple guests found with the name <strong>{firstName} {lastName}</strong>. Please enter your phone number to continue.</p>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '16px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px' }}>Verify Identity</label>
+            <p style={{ textAlign: 'center', fontSize: '14px', color: '#4b5563', marginBottom: '20px' }}>Multiple guests found with the name <strong>{firstName} {lastName}</strong>. Please enter your phone number to continue.</p>
             <div style={{ marginBottom: '24px' }}>
               <div className="floating-input-group">
                 <input 
@@ -436,27 +433,25 @@ export default function EventPage() {
                   value={phoneNumber} 
                   onChange={(e) => { setPhoneNumber(e.target.value); setError(''); }} 
                   placeholder=" " 
-                  style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-main)', border: '2px solid var(--border-glow)' }}
                   required 
                 />
-                <label htmlFor="phone-number" style={{ color: 'var(--text-muted)' }}>Phone Number</label>
+                <label htmlFor="phone-number">Phone Number</label>
               </div>
             </div>
-            {error && <p style={{ color: 'var(--accent-primary)', textAlign: 'center', marginBottom: '16px', fontSize: '14px', background: 'var(--accent-glow)', border: '1px solid var(--accent-primary)', padding: '12px', borderRadius: '12px', fontWeight: 500 }}>{error}</p>}
+            {error && <p style={{ color: '#dc2626', textAlign: 'center', marginBottom: '16px', fontSize: '14px', background: '#fef2f2', padding: '12px', borderRadius: '12px', fontWeight: 500 }}>{error}</p>}
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit" 
-              className="btn-primary"
-              style={{ width: '100%', marginBottom: '10px' }}
+              style={{ width: '100%', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '16px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(244,63,94,0.3)', transition: 'box-shadow 0.2s', marginBottom: '10px' }}
             >
               ✨ Verify
             </motion.button>
-            <button type="button" onClick={() => { setRequiresPhoneVerification(false); setError(''); }} style={{ width: '100%', background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '10px', cursor: 'pointer', fontWeight: 500 }}>← Back</button>
+            <button type="button" onClick={() => { setRequiresPhoneVerification(false); setError(''); }} style={{ width: '100%', background: 'transparent', color: '#6b7280', border: 'none', padding: '10px', cursor: 'pointer', fontWeight: 500 }}>← Back</button>
           </form>
         ) : (
           <form onSubmit={handleSubmit}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '16px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px' }}>Find Your Table</label>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '16px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px' }}>Find Your Table</label>
             <div style={{ marginBottom: '8px' }}>
               <div className="floating-input-group">
                 <input 
@@ -465,10 +460,9 @@ export default function EventPage() {
                   value={firstName} 
                   onChange={(e) => { setFirstName(e.target.value); setError(''); }} 
                   placeholder=" " 
-                  style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-main)', border: '2px solid var(--border-glow)' }}
                   required 
                 />
-                <label htmlFor="first-name" style={{ color: 'var(--text-muted)' }}>First Name</label>
+                <label htmlFor="first-name">First Name</label>
               </div>
             </div>
             <div style={{ marginBottom: '24px' }}>
@@ -479,26 +473,24 @@ export default function EventPage() {
                   value={lastName} 
                   onChange={(e) => { setLastName(e.target.value); setError(''); }} 
                   placeholder=" " 
-                  style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-main)', border: '2px solid var(--border-glow)' }}
                   required 
                 />
-                <label htmlFor="last-name" style={{ color: 'var(--text-muted)' }}>Last Name</label>
+                <label htmlFor="last-name">Last Name</label>
               </div>
             </div>
-            {error && <p style={{ color: 'var(--accent-primary)', textAlign: 'center', marginBottom: '16px', fontSize: '14px', background: 'var(--accent-glow)', border: '1px solid var(--accent-primary)', padding: '12px', borderRadius: '12px', fontWeight: 500 }}>{error}</p>}
+            {error && <p style={{ color: '#dc2626', textAlign: 'center', marginBottom: '16px', fontSize: '14px', background: '#fef2f2', padding: '12px', borderRadius: '12px', fontWeight: 500 }}>{error}</p>}
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit" 
-              className="btn-primary"
-              style={{ width: '100%' }}
+              style={{ width: '100%', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '16px', borderRadius: '9999px', border: 'none', fontWeight: 600, fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(244,63,94,0.3)', transition: 'box-shadow 0.2s' }}
             >
               ✨ Enter Dashboard
             </motion.button>
           </form>
         )}
         
-        <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '30px' }}>EverAfter Hub</p>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#d1d5db', marginTop: '30px' }}>EverAfter Hub</p>
       </motion.div>
     </div>
   );

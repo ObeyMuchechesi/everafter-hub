@@ -15,6 +15,12 @@ export default function RSVP() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    if (token) {
+      loadGuestData(token);
+    }
+  }, [token]);
+
   async function loadGuestData(guestToken) {
     setLoading(true);
     // In a real RLS setup, this would be a backend call, or the token must match perfectly.
@@ -37,12 +43,6 @@ export default function RSVP() {
     setDiet(data.dietary_requirements || '');
     setLoading(false);
   }
-
-  useEffect(() => {
-    if (token) {
-      loadGuestData(token);
-    }
-  }, [token]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -103,8 +103,8 @@ export default function RSVP() {
               <p style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '12px' }}>Hello, {guest.first_name} {guest.last_name}!</p>
               <label style={{ fontSize: '14px', fontWeight: 600, color: '#4b5563', marginBottom: '8px', display: 'block' }}>Will you be attending?</label>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="button" onClick={() => setStatus('attending')} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: status === 'attending' ? '2px solid #10b981' : '2px solid #e5e7eb', background: status === 'attending' ? '#d1fae5' : 'white', color: status === 'attending' ? '#065f46' : '#4b5563', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>Yes, I&apos;ll be there!</button>
-                <button type="button" onClick={() => setStatus('declined')} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: status === 'declined' ? '2px solid #ef4444' : '2px solid #e5e7eb', background: status === 'declined' ? '#fee2e2' : 'white', color: status === 'declined' ? '#991b1b' : '#4b5563', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>No, I can&apos;t make it</button>
+                <button type="button" onClick={() => setStatus('attending')} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: status === 'attending' ? '2px solid #10b981' : '2px solid #e5e7eb', background: status === 'attending' ? '#d1fae5' : 'white', color: status === 'attending' ? '#065f46' : '#4b5563', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>Yes, I'll be there!</button>
+                <button type="button" onClick={() => setStatus('declined')} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: status === 'declined' ? '2px solid #ef4444' : '2px solid #e5e7eb', background: status === 'declined' ? '#fee2e2' : 'white', color: status === 'declined' ? '#991b1b' : '#4b5563', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>No, I can't make it</button>
               </div>
             </div>
 
