@@ -26,14 +26,15 @@
 
 /* Background image */
 .background-container {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-image: url('/bg_roses.png');
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     z-index: -2;
 }
 
