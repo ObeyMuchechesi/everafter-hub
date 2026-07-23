@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Key } from 'lucide-react';
+import { LogOut, Key, PartyPopper, User, Users, Clock, Utensils, Camera, MessageSquare, BarChart2, Tag, Image as ImageIcon, MessageCircle, FileText } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -693,9 +693,19 @@ export default function Admin({ initialRole = 'admin' }) {
               onClick={() => handleTabClick(tab)} 
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
             >
-              <span style={{ fontSize: '20px', marginBottom: '4px' }}>
-                {tab === 'events' && '🎉'}{tab === 'users' && '👤'}{tab === 'guests' && '👥'}{tab === 'timeline' && '⏱'}{tab === 'menu' && '🍽'}{tab === 'photos' && '📸'}{tab === 'messages' && '💬'}
-                {tab === 'analytics' && '📊'}{tab === 'table_planner' && '🏷️'}{tab === 'photo_queue' && '📸'}{tab === 'live_chat' && '💬'}{tab === 'reports' && '📄'}
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', color: activeTab === tab ? roleTheme.accent : '#6b7280' }}>
+                {tab === 'events' && <PartyPopper size={24} strokeWidth={1.5} />}
+                {tab === 'users' && <User size={24} strokeWidth={1.5} />}
+                {tab === 'guests' && <Users size={24} strokeWidth={1.5} />}
+                {tab === 'timeline' && <Clock size={24} strokeWidth={1.5} />}
+                {tab === 'menu' && <Utensils size={24} strokeWidth={1.5} />}
+                {tab === 'photos' && <Camera size={24} strokeWidth={1.5} />}
+                {tab === 'messages' && <MessageSquare size={24} strokeWidth={1.5} />}
+                {tab === 'analytics' && <BarChart2 size={24} strokeWidth={1.5} />}
+                {tab === 'table_planner' && <Tag size={24} strokeWidth={1.5} />}
+                {tab === 'photo_queue' && <ImageIcon size={24} strokeWidth={1.5} />}
+                {tab === 'live_chat' && <MessageCircle size={24} strokeWidth={1.5} />}
+                {tab === 'reports' && <FileText size={24} strokeWidth={1.5} />}
               </span>
               <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{tab.replace('_', ' ')}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
