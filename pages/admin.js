@@ -737,12 +737,45 @@ export default function Admin({ initialRole = 'admin' }) {
               {showEventForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                   <form onSubmit={createEvent} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <select value={['wedding', 'corporate', 'birthday', 'gala', 'party'].includes(newEvent.event_type) ? newEvent.event_type : 'other'} onChange={(e) => { if(e.target.value === 'other') { setNewEvent({...newEvent, event_type: ''}) } else { setNewEvent({...newEvent, event_type: e.target.value}) } }} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
-                        <option value="wedding">💒 Wedding</option><option value="corporate">💼 Corporate</option><option value="birthday">🎂 Birthday</option><option value="gala">✨ Gala</option><option value="party">🎉 Party</option><option value="other">🎯 Other</option>
-                      </select>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', gridColumn: '1 / -1' }}>
+                      <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>Select Event Type</label>
+                      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                        {['wedding', 'corporate', 'birthday', 'gala', 'party', 'other'].map(type => {
+                          const isSelected = ['wedding', 'corporate', 'birthday', 'gala', 'party'].includes(newEvent.event_type) 
+                            ? newEvent.event_type === type 
+                            : type === 'other';
+                          
+                          return (
+                            <div 
+                              key={type} 
+                              onClick={() => {
+                                if(type === 'other') {
+                                  setNewEvent({...newEvent, event_type: ''});
+                                } else {
+                                  setNewEvent({...newEvent, event_type: type});
+                                }
+                              }}
+                              style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', 
+                                cursor: 'pointer', padding: '10px', borderRadius: '16px', minWidth: '90px',
+                                background: isSelected ? '#fff0f3' : '#f9fafb',
+                                border: isSelected ? '2px solid #f43f5e' : '2px solid transparent',
+                                transition: 'all 0.2s ease',
+                                boxShadow: isSelected ? '0 4px 12px rgba(244,63,94,0.1)' : 'none'
+                              }}
+                            >
+                              {type !== 'other' ? (
+                                <img src={`/icons/${type}.jpg`} alt={type} style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }} />
+                              ) : (
+                                <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)' }}>✨</div>
+                              )}
+                              <span style={{ fontSize: '12px', fontWeight: isSelected ? 700 : 500, color: isSelected ? '#f43f5e' : '#6b7280', textTransform: 'capitalize' }}>{type}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                       {!['wedding', 'corporate', 'birthday', 'gala', 'party'].includes(newEvent.event_type) && (
-                        <input placeholder="Specify Event Type" value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                        <input placeholder="Specify Custom Event Type" value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', width: '100%', maxWidth: '300px' }} required />
                       )}
                     </div>
                     <input placeholder="Event Name" value={newEvent.event_name} onChange={(e) => setNewEvent({...newEvent, event_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
