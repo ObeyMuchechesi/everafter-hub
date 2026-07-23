@@ -67,11 +67,12 @@
 .brand-logo {
     max-width: 100%;
     height: auto;
-    margin-top: -50px; /* Pulls the logo up to remove the top transparent space */
-    margin-bottom: -110px; /* Adjusted negative margin to prevent overlap */
+    margin-top: -50px;
+    margin-bottom: -110px;
     display: inline-block;
     position: relative;
     z-index: 1;
+    pointer-events: none;
 }
 
 .tagline-container {
