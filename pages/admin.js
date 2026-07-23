@@ -23,6 +23,8 @@ export default function Admin({ initialRole = 'admin' }) {
   const [events, setEvents] = useState([]);
   const [deletedEvents, setDeletedEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [guestSearch, setGuestSearch] = useState('');
   const [users, setUsers] = useState([]);
   const [dangerInput, setDangerInput] = useState({ everything: '', events: '', users: '', guests: '', targetEventId: 'all' });
   const [guests, setGuests] = useState([]);
@@ -317,11 +319,13 @@ export default function Admin({ initialRole = 'admin' }) {
       };
       delete eventPayload.assigned_user_id;
 
-      const { data, error } = await supabase
-        .from('events')
-        .insert(eventPayload)
-        .select('*')
-        .single();
+      let dbResult;
+      if (editingEventId) {
+        dbResult = await supabase.from('events').update(eventPayload).eq('id', editingEventId).select('*').single();
+      } else {
+        dbResult = await supabase.from('events').insert(eventPayload).select('*').single();
+      }
+      const { data, error } = dbResult;
 
       if (!error && data) {
         setShowEventForm(false);
@@ -329,10 +333,15 @@ export default function Admin({ initialRole = 'admin' }) {
         setPreviewCover(null);
         setNewUserForEvent({ email: '', full_name: '', password: '' });
         loadEvents(currentUser);
-        setSelectedEvent(data);
-        setQrEvent(data);
-        setShowQRModal(true);
-        alert('Event created and assigned to the selected user!');
+        if (!editingEventId) {
+          setSelectedEvent(data);
+          setQrEvent(data);
+          setShowQRModal(true);
+          alert('Event created and assigned to the selected user!');
+        } else {
+          alert('Event updated successfully!');
+          setEditingEventId(null);
+        }
       } else {
         alert('Error: ' + error.message);
       }
@@ -611,7 +620,7 @@ export default function Admin({ initialRole = 'admin' }) {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '4px 8px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
           <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.primary, color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(244,63,94,0.3)' }} title="Change Password"><Key size={18} strokeWidth={2.5} /></button>
-          <button onClick={() => { setLoggedIn(false); localStorage.removeItem('everafter_admin_user'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><LogOut size={18} strokeWidth={2.5} /></button>
+          <button onClick={() => { localStorage.removeItem('everafter_admin_user'); router.push('/login'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><LogOut size={18} strokeWidth={2.5} /></button>
         </div>
       </header>
 
@@ -721,7 +730,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     </select>
                   )}
                   {isAdmin && (
-                    <button onClick={() => setShowEventForm(!showEventForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
+                    <button onClick={() => { setShowEventForm(!showEventForm); setEditingEventId(null); setNewEvent({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '', number_of_tables: 10, chairs_per_table: 10 }); setPreviewCover(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showEventForm ? 'Cancel' : '+ New Event'}</button>
                   )}
                 </div>
               </div>
@@ -831,6 +840,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <button onClick={() => openQR(event)} style={{ background: '#dbeafe', color: '#1e40af', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>📱 QR</button>
+                    <button onClick={() => { setEditingEventId(event.id); setNewEvent({...event, assigned_user_id: event.user_id}); setShowEventForm(true); }} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Edit</button>
                     {isAdmin && <button onClick={() => deleteEvent(event.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>}
                     <button onClick={() => selectEvent(event)} style={{ background: '#fff1f2', color: '#f43f5e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Manage →</button>
                   </div>
@@ -938,6 +948,7 @@ export default function Admin({ initialRole = 'admin' }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Guests — {selectedEvent.event_name}</h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
+                  <input type="text" placeholder="Search guests..." value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                   <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/new/${selectedEvent.id}`); alert('Event RSVP link copied! Send this to all guests.'); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }}>🔗 Copy Event RSVP Link</button>
                   <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
                 </div>
@@ -954,7 +965,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   </form>
                 </div>
               )}
-              {guests.map(guest => (
+              {guests.filter(g => guestSearch === '' || g.first_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.last_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.table_number.toString().includes(guestSearch)).map(guest => (
                 <div key={guest.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>

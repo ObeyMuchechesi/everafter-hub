@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +39,6 @@ export default function LoginPage() {
     <>
       <Head>
         <title>EverAfter Hub - Login</title>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
       </Head>
       <div className="login-body-wrapper">
         <div className="background-container"></div>
@@ -91,10 +91,10 @@ export default function LoginPage() {
                         {error && <p style={{ color: '#d11f4d', fontSize: '13px', marginBottom: '16px', textAlign: 'center', background: '#fff0f3', padding: '10px', borderRadius: '6px', fontWeight: 500 }}>{error}</p>}
 
                         <div className="form-actions">
-                            <label className="remember-me">
-                                <input type="checkbox" defaultChecked />
-                                <span className="custom-checkbox">
-                                    <span className="material-symbols-outlined check-icon">check</span>
+                            <label className="remember-me" onClick={(e) => { e.preventDefault(); setRememberMe(!rememberMe); }}>
+                                <input type="checkbox" checked={rememberMe} readOnly />
+                                <span className="custom-checkbox" style={{ backgroundColor: rememberMe ? 'var(--primary-color)' : 'transparent' }}>
+                                    {rememberMe && <span className="material-symbols-outlined check-icon">check</span>}
                                 </span>
                                 Remember me
                             </label>
