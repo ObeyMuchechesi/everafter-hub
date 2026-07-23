@@ -737,9 +737,14 @@ export default function Admin({ initialRole = 'admin' }) {
               {showEventForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                   <form onSubmit={createEvent} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
-                    <select value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
-                      <option value="wedding">💒 Wedding</option><option value="corporate">💼 Corporate</option><option value="birthday">🎂 Birthday</option><option value="gala">✨ Gala</option><option value="party">🎉 Party</option><option value="other">🎯 Other</option>
-                    </select>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <select value={['wedding', 'corporate', 'birthday', 'gala', 'party'].includes(newEvent.event_type) ? newEvent.event_type : 'other'} onChange={(e) => { if(e.target.value === 'other') { setNewEvent({...newEvent, event_type: ''}) } else { setNewEvent({...newEvent, event_type: e.target.value}) } }} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
+                        <option value="wedding">💒 Wedding</option><option value="corporate">💼 Corporate</option><option value="birthday">🎂 Birthday</option><option value="gala">✨ Gala</option><option value="party">🎉 Party</option><option value="other">🎯 Other</option>
+                      </select>
+                      {!['wedding', 'corporate', 'birthday', 'gala', 'party'].includes(newEvent.event_type) && (
+                        <input placeholder="Specify Event Type" value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
+                      )}
+                    </div>
                     <input placeholder="Event Name" value={newEvent.event_name} onChange={(e) => setNewEvent({...newEvent, event_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Host/Couple" value={newEvent.host_name} onChange={(e) => setNewEvent({...newEvent, host_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input type="date" value={newEvent.event_date} onChange={(e) => setNewEvent({...newEvent, event_date: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
