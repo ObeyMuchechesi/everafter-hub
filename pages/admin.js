@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Key, PartyPopper, User, Users, Clock, Utensils, Camera, MessageSquare, BarChart2, Tag, Image as ImageIcon, MessageCircle, FileText } from 'lucide-react';
+import { IoCalendar, IoPerson, IoPeople, IoTime, IoRestaurant, IoCamera, IoChatbox, IoBarChart, IoPricetag, IoImages, IoChatbubbles, IoDocumentText, IoLogOut, IoKey } from 'react-icons/io5';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -619,8 +619,8 @@ export default function Admin({ initialRole = 'admin' }) {
         </motion.div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '4px 8px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
-          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.primary, color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(244,63,94,0.3)' }} title="Change Password"><Key size={18} strokeWidth={2.5} /></button>
-          <button onClick={() => { localStorage.removeItem('everafter_admin_user'); router.push('/login'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><LogOut size={18} strokeWidth={2.5} /></button>
+          <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.primary, color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(244,63,94,0.3)' }} title="Change Password"><IoKey size={18} /></button>
+          <button onClick={() => { localStorage.removeItem('everafter_admin_user'); router.push('/login'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><IoLogOut size={18} /></button>
         </div>
       </header>
 
@@ -694,18 +694,18 @@ export default function Admin({ initialRole = 'admin' }) {
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', color: activeTab === tab ? roleTheme.accent : '#6b7280' }}>
-                {tab === 'events' && <PartyPopper size={24} strokeWidth={1.5} />}
-                {tab === 'users' && <User size={24} strokeWidth={1.5} />}
-                {tab === 'guests' && <Users size={24} strokeWidth={1.5} />}
-                {tab === 'timeline' && <Clock size={24} strokeWidth={1.5} />}
-                {tab === 'menu' && <Utensils size={24} strokeWidth={1.5} />}
-                {tab === 'photos' && <Camera size={24} strokeWidth={1.5} />}
-                {tab === 'messages' && <MessageSquare size={24} strokeWidth={1.5} />}
-                {tab === 'analytics' && <BarChart2 size={24} strokeWidth={1.5} />}
-                {tab === 'table_planner' && <Tag size={24} strokeWidth={1.5} />}
-                {tab === 'photo_queue' && <ImageIcon size={24} strokeWidth={1.5} />}
-                {tab === 'live_chat' && <MessageCircle size={24} strokeWidth={1.5} />}
-                {tab === 'reports' && <FileText size={24} strokeWidth={1.5} />}
+                {tab === 'events' && <IoCalendar size={24} color="#f43f5e" />}
+                {tab === 'users' && <IoPerson size={24} color="#8b5cf6" />}
+                {tab === 'guests' && <IoPeople size={24} color="#3b82f6" />}
+                {tab === 'timeline' && <IoTime size={24} color="#10b981" />}
+                {tab === 'menu' && <IoRestaurant size={24} color="#f59e0b" />}
+                {tab === 'photos' && <IoCamera size={24} color="#ec4899" />}
+                {tab === 'messages' && <IoChatbubbles size={24} color="#14b8a6" />}
+                {tab === 'analytics' && <IoBarChart size={24} color="#6366f1" />}
+                {tab === 'table_planner' && <IoPricetag size={24} color="#f97316" />}
+                {tab === 'photo_queue' && <IoImages size={24} color="#db2777" />}
+                {tab === 'live_chat' && <IoChatbox size={24} color="#0ea5e9" />}
+                {tab === 'reports' && <IoDocumentText size={24} color="#64748b" />}
               </span>
               <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{tab.replace('_', ' ')}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
