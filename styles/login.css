@@ -68,7 +68,7 @@
     max-width: 100%;
     height: auto;
     margin-top: -50px;
-    margin-bottom: -60px;
+    margin-bottom: -110px;
     display: inline-block;
     position: relative;
     z-index: 1;
@@ -156,15 +156,12 @@
 }
 
 .login-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
+    background-color: var(--bg-white);
+    border-radius: 16px;
     padding: 40px;
     width: 100%;
     max-width: 420px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
 }
 
 .shield-wrapper {

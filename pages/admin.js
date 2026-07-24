@@ -419,6 +419,18 @@ export default function Admin({ initialRole = 'admin' }) {
   const addGuest = async (e) => {
     e.preventDefault();
     if (!selectedEvent) return;
+
+    const isDuplicate = guests.some(g => 
+      g.first_name.toLowerCase().trim() === newGuest.first_name.toLowerCase().trim() &&
+      g.last_name.toLowerCase().trim() === newGuest.last_name.toLowerCase().trim() &&
+      (g.phone_number || '').trim() === (newGuest.phone_number || '').trim()
+    );
+
+    if (isDuplicate) {
+      alert('A guest with this exact First Name, Last Name, and Phone Number already exists for this event.');
+      return;
+    }
+
     setIsLoading(true);
     const { error } = await supabase.from('guests').insert({ 
       event_id: selectedEvent.id, 
