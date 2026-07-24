@@ -26,14 +26,25 @@ export default async function handler(req, res) {
     const maxTables = event.number_of_tables || 10;
     const maxChairs = event.chairs_per_table || 10;
 
-    // 2. Fetch existing guests to calculate table capacities
+    // 2. Fetch existing guests to calculate table capacities and check duplicates
     const { data: existingGuests, error: guestsError } = await supabase
       .from('guests')
-      .select('table_number')
+      .select('table_number, first_name, last_name, phone_number')
       .eq('event_id', eventId);
 
     if (guestsError) {
       return res.status(500).json({ error: 'Failed to fetch existing guests' });
+    }
+
+    // Check for duplicates
+    const isDuplicate = existingGuests.some(g => 
+      g.first_name.toLowerCase().trim() === firstName.toLowerCase().trim() &&
+      g.last_name.toLowerCase().trim() === lastName.toLowerCase().trim() &&
+      (g.phone_number || '').trim() === phoneNumber.trim()
+    );
+
+    if (isDuplicate) {
+      return res.status(400).json({ error: 'A guest with this exact First Name, Last Name, and Phone Number has already RSVP\'d.' });
     }
 
     // 3. Find next available table
