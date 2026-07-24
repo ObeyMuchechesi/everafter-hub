@@ -11,6 +11,10 @@ export default function EventPage() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // States for handling duplicates
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
+  const [matchingGuests, setMatchingGuests] = useState([]);
+  const [phoneNumber, setPhoneNumber] = useState('');
   useEffect(() => {
     if (!router.isReady) return;
     if (eventId) loadEvent(eventId);
@@ -32,7 +36,13 @@ export default function EventPage() {
       couple: eventData.host_name || 'Guest',
       date: new Date(eventData.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       venue: eventData.venue || '',
-      guests: guests?.map(g => ({ name: g.full_name, table: g.table_number, diet: g.dietary_requirements || '' })) || []
+      guests: guests?.map(g => ({ 
+        id: g.id,
+        name: `${(g.first_name || '').trim()} ${(g.last_name || '').trim()}`.trim(), 
+        phone: g.phone_number || '',
+        table: g.table_number, 
+        diet: g.dietary_requirements || '' 
+      })) || []
     });
     setLoading(false);
   }
@@ -42,9 +52,48 @@ export default function EventPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const found = event.guests.find(g => g.name.toLowerCase() === name.trim().toLowerCase());
-    if (found) { setGuest(found); setError(''); }
-    else { setError('Name not found'); }
+    const searchName = name.trim().toLowerCase();
+    
+    // Find all guests that match the entered name
+    const found = event.guests.filter(g => g.name.toLowerCase() === searchName);
+    
+    if (found.length === 1) {
+      setGuest(found[0]);
+      setError('');
+    } else if (found.length > 1) {
+      setMatchingGuests(found);
+      setShowPhonePrompt(true);
+      setError('');
+    } else {
+      setError("We couldn't find your name on the guest list.");
+    }
+  };
+
+  const handlePhoneSubmit = (e) => {
+    e.preventDefault();
+    const searchPhone = phoneNumber.replace(/[^\d+]/g, '').trim();
+    
+    const matchedGuest = matchingGuests.find(g => {
+      const gPhone = (g.phone || '').replace(/[^\d+]/g, '').trim();
+      return gPhone === searchPhone;
+    });
+
+    if (matchedGuest) {
+      setGuest(matchedGuest);
+      setShowPhonePrompt(false);
+      setError('');
+    } else {
+      setError("This phone number doesn't match our records for this name.");
+    }
+  };
+
+  const resetSearch = () => {
+    setGuest(null);
+    setShowPhonePrompt(false);
+    setMatchingGuests([]);
+    setName('');
+    setPhoneNumber('');
+    setError('');
   };
 
   if (guest) {
@@ -55,7 +104,7 @@ export default function EventPage() {
           <p style={{fontSize:80,fontFamily:'Playfair Display,serif',fontWeight:700,color:'#f43f5e',margin:'16px 0'}}>{guest.table}</p>
           {guest.diet && <p style={{color:'#6b7280'}}>🥗 {guest.diet}</p>}
           <p style={{marginTop:24}}>Welcome, {guest.name}!</p>
-          <button onClick={()=>setGuest(null)} style={{marginTop:16,background:'transparent',border:'1px solid #e5e7eb',padding:'8px 20px',borderRadius:20,cursor:'pointer'}}>← Back</button>
+          <button onClick={resetSearch} style={{marginTop:16,background:'transparent',border:'1px solid #e5e7eb',padding:'8px 20px',borderRadius:20,cursor:'pointer'}}>← Back</button>
         </div>
       </div>
     );
@@ -67,11 +116,24 @@ export default function EventPage() {
         <h1 style={{fontSize:28,fontFamily:'Playfair Display,serif',textAlign:'center',marginBottom:4}}>{event.couple}</h1>
         <p style={{textAlign:'center',color:'#6b7280',marginBottom:4,fontSize:14}}>{event.date}</p>
         <p style={{textAlign:'center',color:'#9ca3af',marginBottom:24,fontSize:13}}>{event.venue}</p>
-        <form onSubmit={handleSubmit}>
-          <input type="text" value={name} onChange={(e)=>{setName(e.target.value);setError('')}} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:12,padding:16,fontSize:16,boxSizing:'border-box',marginBottom:12}} placeholder="Enter your full name..." required />
-          {error && <p style={{color:'#dc2626',textAlign:'center',marginBottom:12}}>{error}</p>}
-          <button type="submit" style={{width:'100%',background:'linear-gradient(to right,#f43f5e,#ec4899)',color:'white',padding:14,borderRadius:9999,border:'none',fontWeight:600,fontSize:16,cursor:'pointer'}}>✨ Find My Table</button>
-        </form>
+        
+        {!showPhonePrompt ? (
+          <form onSubmit={handleSubmit}>
+            <input type="text" value={name} onChange={(e)=>{setName(e.target.value);setError('')}} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:12,padding:16,fontSize:16,boxSizing:'border-box',marginBottom:12}} placeholder="Enter your full name..." required />
+            {error && <p style={{color:'#dc2626',textAlign:'center',marginBottom:12}}>{error}</p>}
+            <button type="submit" style={{width:'100%',background:'linear-gradient(to right,#f43f5e,#ec4899)',color:'white',padding:14,borderRadius:9999,border:'none',fontWeight:600,fontSize:16,cursor:'pointer'}}>✨ Find My Table</button>
+          </form>
+        ) : (
+          <form onSubmit={handlePhoneSubmit}>
+            <p style={{textAlign:'center',color:'#f43f5e',marginBottom:16,fontSize:14,fontWeight:600}}>
+              We found multiple guests named {name}. Please enter your phone number to find your specific table.
+            </p>
+            <input type="tel" value={phoneNumber} onChange={(e)=>{setPhoneNumber(e.target.value);setError('')}} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:12,padding:16,fontSize:16,boxSizing:'border-box',marginBottom:12}} placeholder="Enter your phone number..." required />
+            {error && <p style={{color:'#dc2626',textAlign:'center',marginBottom:12}}>{error}</p>}
+            <button type="submit" style={{width:'100%',background:'linear-gradient(to right,#f43f5e,#ec4899)',color:'white',padding:14,borderRadius:9999,border:'none',fontWeight:600,fontSize:16,cursor:'pointer'}}>Verify Phone</button>
+            <button type="button" onClick={() => { setShowPhonePrompt(false); setError(''); }} style={{width:'100%',background:'transparent',color:'#6b7280',padding:14,border:'none',fontWeight:500,fontSize:14,cursor:'pointer',marginTop:8}}>Cancel</button>
+          </form>
+        )}
       </div>
     </div>
   );
