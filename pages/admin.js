@@ -77,6 +77,10 @@ export default function Admin({ initialRole = 'admin' }) {
   const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
   const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '', phone_number: '' });
+  const [showImportForm, setShowImportForm] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
   const [newTimeline, setNewTimeline] = useState({ event_time: '', title: '', location: '', sort_order: '' });
   const [newMenu, setNewMenu] = useState({ course_type: 'starter', dish_name: '', description: '' });
   const [passwordData, setPasswordData] = useState({ userId: '', newPassword: '' });
@@ -448,6 +452,47 @@ export default function Admin({ initialRole = 'admin' }) {
       alert('Error: ' + error.message);
     }
     setIsLoading(false);
+  };
+
+  const handleImportFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImportFile(file);
+    setImportResult(null);
+  };
+
+  const importGuestsFromFile = async () => {
+    if (!importFile || !selectedEvent) return;
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const fileData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(importFile);
+      });
+
+      const response = await fetch('/api/guests/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: selectedEvent.id, fileName: importFile.name, fileData }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setImportResult({ success: false, message: result.error || 'Import failed.' });
+      } else {
+        const dupNote = result.duplicateNameGroups > 0 ? ` (including ${result.duplicateNameGroups} name${result.duplicateNameGroups > 1 ? 's' : ''} that appear more than once — that's fine, they were all added)` : '';
+        setImportResult({ success: true, message: `Added ${result.insertedCount} of ${result.totalParsed} guests found in the file${dupNote}.` });
+        setImportFile(null);
+        loadGuests(selectedEvent.id);
+      }
+    } catch (err) {
+      setImportResult({ success: false, message: 'Something went wrong while importing. Please try again.' });
+    }
+    setImporting(false);
   };
 
   const updateGuestTableNumber = async (guestId) => {
@@ -1010,9 +1055,26 @@ export default function Admin({ initialRole = 'admin' }) {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input type="text" placeholder="Search guests..." value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                   <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/new/${selectedEvent.id}`); alert('Event RSVP link copied! Send this to all guests.'); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }}>🔗 Copy Event RSVP Link</button>
+                  <button onClick={() => { setShowImportForm(!showImportForm); setImportResult(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>📥 Import Guests</button>
                   <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
                 </div>
               </div>
+              {showImportForm && (
+                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                  <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#6b7280' }}>Upload a CSV, Excel (.xlsx/.xls), Word (.docx), or PDF guest list. First name, surname, and phone number (if present) will be extracted automatically — duplicate names are all added, nothing is skipped.</p>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input type="file" accept=".csv,.xlsx,.xls,.docx,.pdf" onChange={handleImportFileSelect} style={{ padding: '8px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: 1, minWidth: '220px' }} />
+                    <button onClick={importGuestsFromFile} disabled={!importFile || importing} style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: (!importFile || importing) ? 'not-allowed' : 'pointer', opacity: (!importFile || importing) ? 0.6 : 1 }}>
+                      {importing ? 'Importing...' : 'Import'}
+                    </button>
+                  </div>
+                  {importResult && (
+                    <p style={{ marginTop: '12px', padding: '10px 14px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, background: importResult.success ? '#ecfdf5' : '#fef2f2', color: importResult.success ? '#047857' : '#dc2626' }}>
+                      {importResult.message}
+                    </p>
+                  )}
+                </div>
+              )}
               {showGuestForm && (
                 <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
                   <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
