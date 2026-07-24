@@ -479,10 +479,15 @@ export default function Admin({ initialRole = 'admin' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventId: selectedEvent.id, fileName: importFile.name, fileData }),
       });
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}. It might be too large or timed out.`);
+      }
 
       if (!response.ok) {
-        setImportResult({ success: false, message: result.error || 'Import failed.' });
+        setImportResult({ success: false, message: result?.error || 'Import failed.' });
       } else {
         const dupNote = result.duplicateNameGroups > 0 ? ` (including ${result.duplicateNameGroups} name${result.duplicateNameGroups > 1 ? 's' : ''} that appear more than once — that's fine, they were all added)` : '';
         setImportResult({ success: true, message: `Added ${result.insertedCount} of ${result.totalParsed} guests found in the file${dupNote}.` });
@@ -490,7 +495,7 @@ export default function Admin({ initialRole = 'admin' }) {
         loadGuests(selectedEvent.id);
       }
     } catch (err) {
-      setImportResult({ success: false, message: 'Something went wrong while importing. Please try again.' });
+      setImportResult({ success: false, message: `Import error: ${err.message}` });
     }
     setImporting(false);
   };
