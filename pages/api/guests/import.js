@@ -1,10 +1,10 @@
 import { supabase } from '../../../lib/supabase';
 import { parseGuestFile } from '../../../lib/guestFileParser';
 
-// Uploaded files arrive as base64 JSON — allow a generous body size.
+// Read file as raw binary stream to avoid base64 memory inflation and payload limits
 export const config = {
   api: {
-    bodyParser: { sizeLimit: '15mb' },
+    bodyParser: false,
   },
 };
 
@@ -13,18 +13,25 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { eventId, fileName, fileData } = req.body || {};
+  const eventId = req.query.eventId;
+  const fileName = req.query.fileName;
 
-  if (!eventId || !fileName || !fileData) {
-    return res.status(400).json({ error: 'Missing eventId, fileName, or fileData' });
+  if (!eventId || !fileName) {
+    return res.status(400).json({ error: 'Missing eventId or fileName in query parameters' });
   }
 
   let buffer;
   try {
-    const base64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
-    buffer = Buffer.from(base64, 'base64');
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    buffer = Buffer.concat(chunks);
+    if (buffer.length === 0) {
+      return res.status(400).json({ error: 'Uploaded file is empty.' });
+    }
   } catch (e) {
-    return res.status(400).json({ error: 'Could not read the uploaded file.' });
+    return res.status(400).json({ error: 'Could not read the uploaded file stream.' });
   }
 
   // 1. Parse the file into candidate guests (name + phone). Duplicates are kept.

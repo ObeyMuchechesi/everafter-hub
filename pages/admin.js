@@ -467,17 +467,12 @@ export default function Admin({ initialRole = 'admin' }) {
     setImportResult(null);
 
     try {
-      const fileData = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(importFile);
-      });
-
-      const response = await fetch('/api/guests/import', {
+      const response = await fetch(`/api/guests/import?eventId=${selectedEvent.id}&fileName=${encodeURIComponent(importFile.name)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId: selectedEvent.id, fileName: importFile.name, fileData }),
+        headers: {
+          'Content-Type': importFile.type || 'application/octet-stream'
+        },
+        body: importFile,
       });
       let result;
       try {
