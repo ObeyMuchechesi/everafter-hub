@@ -74,9 +74,9 @@ export default function Admin({ initialRole = 'admin' }) {
     e.preventDefault();
     setPreviewCover(null);
   };
-  const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', phone: '', password: '', role: 'user' });
+  const [newUser, setNewUser] = useState({ email: '', full_name: '', company_name: '', password: '', role: 'user' });
   const [editingUser, setEditingUser] = useState(null);
-  const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '', phone_number: '' });
+  const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' });
   const [showImportForm, setShowImportForm] = useState(false);
   const [importFile, setImportFile] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -303,7 +303,6 @@ export default function Admin({ initialRole = 'admin' }) {
             email: newUserForEvent.email,
             full_name: newUserForEvent.full_name,
             company_name: '',
-            phone: '',
             password: newUserForEvent.password,
           }),
         });
@@ -366,7 +365,7 @@ export default function Admin({ initialRole = 'admin' }) {
     const result = await response.json();
     if (response.ok) {
       setShowUserForm(false);
-      setNewUser({ email: '', full_name: '', company_name: '', phone: '', password: '' });
+      setNewUser({ email: '', full_name: '', company_name: '', password: '' });
       loadUsers();
       alert('User added!');
       alert(result.error || 'Error creating user');
@@ -426,12 +425,11 @@ export default function Admin({ initialRole = 'admin' }) {
 
     const isDuplicate = guests.some(g => 
       g.first_name.toLowerCase().trim() === newGuest.first_name.toLowerCase().trim() &&
-      g.last_name.toLowerCase().trim() === newGuest.last_name.toLowerCase().trim() &&
-      (g.phone_number || '').trim() === (newGuest.phone_number || '').trim()
+      g.last_name.toLowerCase().trim() === newGuest.last_name.toLowerCase().trim()
     );
 
     if (isDuplicate) {
-      alert('A guest with this exact First Name, Last Name, and Phone Number already exists for this event.');
+      alert('A guest with this exact First Name and Last Name already exists for this event.');
       return;
     }
 
@@ -440,13 +438,12 @@ export default function Admin({ initialRole = 'admin' }) {
       event_id: selectedEvent.id, 
       first_name: newGuest.first_name,
       last_name: newGuest.last_name,
-      phone_number: newGuest.phone_number,
       table_number: parseInt(newGuest.table_number),
       dietary_requirements: newGuest.dietary_requirements 
     });
     if (!error) { 
       setShowGuestForm(false); 
-      setNewGuest({ first_name: '', last_name: '', table_number: '', dietary_requirements: '', phone_number: '' }); 
+      setNewGuest({ first_name: '', last_name: '', table_number: '', dietary_requirements: '' }); 
       loadGuests(selectedEvent.id); 
     } else {
       alert('Error: ' + error.message);
@@ -991,7 +988,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name} <span style={{fontSize:'12px', color:'#9ca3af', fontWeight: 400}}>({user.role})</span></p>
                       <p style={{ color: '#4b5563', fontSize: '13px', margin: '4px 0 0 0', fontWeight: 500 }}>Events: {eventNames}</p>
-                      <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>{user.email} • {user.phone || 'N/A'}</p>
+                      <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>{user.email}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button onClick={() => deleteUser(user.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
@@ -1085,7 +1082,7 @@ export default function Admin({ initialRole = 'admin' }) {
               </div>
               {showImportForm && (
                 <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
-                  <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#6b7280' }}>Upload a CSV, Excel (.xlsx/.xls), Word (.docx), or PDF guest list. First name, surname, and phone number (if present) will be extracted automatically — duplicate names are all added, nothing is skipped.</p>
+                  <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#6b7280' }}>Upload a CSV, Excel (.xlsx/.xls), Word (.docx), or PDF guest list. First name and surname will be extracted automatically — duplicate names are all added, nothing is skipped.</p>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input type="file" accept=".csv,.xlsx,.xls,.docx,.pdf" onChange={handleImportFileSelect} style={{ padding: '8px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: 1, minWidth: '220px' }} />
                     <button onClick={importGuestsFromFile} disabled={!importFile || importing} style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: (!importFile || importing) ? 'not-allowed' : 'pointer', opacity: (!importFile || importing) ? 0.6 : 1 }}>
@@ -1104,7 +1101,6 @@ export default function Admin({ initialRole = 'admin' }) {
                   <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
                     <input placeholder="First Name" value={newGuest.first_name} onChange={(e) => setNewGuest({...newGuest, first_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Surname" value={newGuest.last_name} onChange={(e) => setNewGuest({...newGuest, last_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
-                    <input placeholder="Phone Number (Optional)" type="tel" value={newGuest.phone_number} onChange={(e) => setNewGuest({...newGuest, phone_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                     <input placeholder="Table Number" type="number" value={newGuest.table_number} onChange={(e) => setNewGuest({...newGuest, table_number: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Dietary (optional)" value={newGuest.dietary_requirements} onChange={(e) => setNewGuest({...newGuest, dietary_requirements: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
                     <button type="submit" style={{ gridColumn: '1/-1', background: '#10b981', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Add Guest</button>
@@ -1129,8 +1125,6 @@ export default function Admin({ initialRole = 'admin' }) {
                       {guest.dietary_requirements && <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>{guest.dietary_requirements}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#6b7280' }}>
-                      <span><strong style={{color:'#374151'}}>Token:</strong> {guest.guest_token ? guest.guest_token.substring(0,6).toUpperCase() : 'N/A'}</span>
-                      {guest.phone_number && <span><strong style={{color:'#374151'}}>Phone:</strong> {guest.phone_number}</span>}
                       <span><strong style={{color:'#374151'}}>RSVP:</strong> <span style={{ color: guest.rsvp_status === 'attending' ? '#10b981' : guest.rsvp_status === 'declined' ? '#ef4444' : '#f59e0b', fontWeight: 600, textTransform: 'capitalize' }}>{guest.rsvp_status || 'pending'}</span></span>
                       <span><strong style={{color:'#374151'}}>Checked In:</strong> {guest.checked_in_at ? new Date(guest.checked_in_at).toLocaleTimeString() : 'No'}</span>
                     </div>
