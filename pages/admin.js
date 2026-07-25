@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IoCalendar, IoPerson, IoPeople, IoTime, IoRestaurant, IoCamera, IoChatbox, IoBarChart, IoPricetag, IoImages, IoChatbubbles, IoDocumentText, IoLogOut, IoKey } from 'react-icons/io5';
+import { IoCalendar, IoPerson, IoPeople, IoTime, IoRestaurant, IoCamera, IoChatbox, IoBarChart, IoPricetag, IoImages, IoChatbubbles, IoDocumentText, IoLogOut, IoKey, IoStar } from 'react-icons/io5';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -789,24 +789,24 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                 <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
+                  <div><IoStar size={32} color="#f43f5e" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{events.length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
                 </div>
                 {isAdmin && (
                   <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
+                    <div><IoPeople size={32} color="#10b981" style={{ marginBottom: '8px' }} /></div>
                     <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{users.length}</h3>
                     <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
                   </div>
                 )}
                 <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📅</div>
+                  <div><IoCalendar size={32} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) >= new Date()).length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Upcoming Events</p>
                 </div>
                 <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>⏳</div>
+                  <div><IoTime size={32} color="#8b5cf6" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
                 </div>
