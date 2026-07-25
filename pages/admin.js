@@ -787,6 +787,30 @@ export default function Admin({ initialRole = 'admin' }) {
           
           {activeTab === 'events' && (
             <div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{events.length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
+                </div>
+                {isAdmin && (
+                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{users.length}</h3>
+                    <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
+                  </div>
+                )}
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📅</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) >= new Date()).length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Upcoming Events</p>
+                </div>
+                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>⏳</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
+                </div>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Events</h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
