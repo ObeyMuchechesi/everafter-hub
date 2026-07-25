@@ -472,12 +472,12 @@ export default function Admin({ initialRole = 'admin' }) {
         body: importFile,
       });
       let result;
+      let rawText = '';
       try {
-        result = await response.json();
+        rawText = await response.text();
+        result = JSON.parse(rawText);
       } catch (parseError) {
-        let text = 'No response text';
-        try { text = await response.text(); } catch(e) {}
-        throw new Error(`Server returned ${response.status}. Response: ${text.substring(0, 200)}`);
+        throw new Error(`Server returned ${response.status}. Response: ${rawText.substring(0, 200)}`);
       }
 
       if (!response.ok) {
