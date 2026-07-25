@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IoCalendar, IoPerson, IoPeople, IoTime, IoRestaurant, IoCamera, IoChatbox, IoBarChart, IoPricetag, IoImages, IoChatbubbles, IoDocumentText, IoLogOut, IoKey, IoStar } from 'react-icons/io5';
+import { IoCalendar, IoPerson, IoPeople, IoTime, IoRestaurant, IoCamera, IoChatbox, IoBarChart, IoPricetag, IoImages, IoChatbubbles, IoDocumentText, IoLogOut, IoKey, IoStar, IoCheckmarkCircle, IoLocationSharp } from 'react-icons/io5';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -744,29 +744,43 @@ export default function Admin({ initialRole = 'admin' }) {
         <div className="nav-items-container">
           {tabs.map(tab => (
             <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               key={tab} 
               onClick={() => handleTabClick(tab)} 
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                padding: '12px 6px', 
+                borderRadius: '14px', 
+                cursor: 'pointer', 
+                background: activeTab === tab ? 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)' : 'rgba(255, 255, 255, 0.05)', 
+                color: activeTab === tab ? '#ffffff' : '#94a3b8', 
+                position: 'relative', 
+                border: activeTab === tab ? 'none' : '1px solid rgba(255, 255, 255, 0.08)', 
+                boxShadow: activeTab === tab ? '0 4px 16px rgba(244, 63, 94, 0.4)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', color: activeTab === tab ? roleTheme.accent : '#6b7280' }}>
-                {tab === 'events' && <IoCalendar size={24} color="#f43f5e" />}
-                {tab === 'users' && <IoPerson size={24} color="#8b5cf6" />}
-                {tab === 'guests' && <IoPeople size={24} color="#3b82f6" />}
-                {tab === 'timeline' && <IoTime size={24} color="#10b981" />}
-                {tab === 'menu' && <IoRestaurant size={24} color="#f59e0b" />}
-                {tab === 'photos' && <IoCamera size={24} color="#ec4899" />}
-                {tab === 'messages' && <IoChatbubbles size={24} color="#14b8a6" />}
-                {tab === 'analytics' && <IoBarChart size={24} color="#6366f1" />}
-                {tab === 'table_planner' && <IoPricetag size={24} color="#f97316" />}
-                {tab === 'photo_queue' && <IoImages size={24} color="#db2777" />}
-                {tab === 'live_chat' && <IoChatbox size={24} color="#0ea5e9" />}
-                {tab === 'reports' && <IoDocumentText size={24} color="#64748b" />}
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
+                {tab === 'events' && <IoCalendar size={22} color={activeTab === tab ? '#ffffff' : '#fb7185'} />}
+                {tab === 'users' && <IoPerson size={22} color={activeTab === tab ? '#ffffff' : '#a78bfa'} />}
+                {tab === 'guests' && <IoPeople size={22} color={activeTab === tab ? '#ffffff' : '#60a5fa'} />}
+                {tab === 'timeline' && <IoTime size={22} color={activeTab === tab ? '#ffffff' : '#34d399'} />}
+                {tab === 'menu' && <IoRestaurant size={22} color={activeTab === tab ? '#ffffff' : '#fbbf24'} />}
+                {tab === 'photos' && <IoCamera size={22} color={activeTab === tab ? '#ffffff' : '#f472b6'} />}
+                {tab === 'messages' && <IoChatbubbles size={22} color={activeTab === tab ? '#ffffff' : '#2dd4bf'} />}
+                {tab === 'analytics' && <IoBarChart size={22} color={activeTab === tab ? '#ffffff' : '#818cf8'} />}
+                {tab === 'table_planner' && <IoPricetag size={22} color={activeTab === tab ? '#ffffff' : '#fb923c'} />}
+                {tab === 'photo_queue' && <IoImages size={22} color={activeTab === tab ? '#ffffff' : '#f472b6'} />}
+                {tab === 'live_chat' && <IoChatbox size={22} color={activeTab === tab ? '#ffffff' : '#38bdf8'} />}
+                {tab === 'reports' && <IoDocumentText size={22} color={activeTab === tab ? '#ffffff' : '#94a3b8'} />}
               </span>
-              <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{tab.replace('_', ' ')}</span>
+              <span style={{ fontSize: '11px', fontWeight: activeTab === tab ? 700 : 500, textTransform: 'capitalize' }}>{tab.replace('_', ' ')}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
-                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', fontSize: '10px', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 700, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', fontSize: '10px', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 700, boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
                   {getTabCount(tab)}
                 </span>
               )}
@@ -787,28 +801,28 @@ export default function Admin({ initialRole = 'admin' }) {
           
           {activeTab === 'events' && (
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div><IoStar size={32} color="#f43f5e" style={{ marginBottom: '8px' }} /></div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{events.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #fecdd3', boxShadow: '0 4px 16px rgba(244,63,94,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#ffe4e6', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoStar size={24} color="#e11d48" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#e11d48', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{events.length}</h3>
+                  <p style={{ margin: 0, color: '#9f1239', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
                 </div>
                 {isAdmin && (
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                    <div><IoPeople size={32} color="#10b981" style={{ marginBottom: '8px' }} /></div>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{users.length}</h3>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
+                  <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #a7f3d0', boxShadow: '0 4px 16px rgba(16,185,129,0.06)', textAlign: 'center' }}>
+                    <div style={{ background: '#d1fae5', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoPeople size={24} color="#059669" /></div>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#059669', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{users.length}</h3>
+                    <p style={{ margin: 0, color: '#065f46', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
                   </div>
                 )}
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div><IoCalendar size={32} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) >= new Date()).length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Upcoming Events</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #fde68a', boxShadow: '0 4px 16px rgba(245,158,11,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#fef3c7', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoCalendar size={24} color="#d97706" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#d97706', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{events.filter(e => new Date(e.event_date) >= new Date()).length}</h3>
+                  <p style={{ margin: 0, color: '#92400e', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Upcoming Events</p>
                 </div>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div><IoTime size={32} color="#8b5cf6" style={{ marginBottom: '8px' }} /></div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #ddd6fe', boxShadow: '0 4px 16px rgba(139,92,246,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#ede9fe', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoTime size={24} color="#7c3aed" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#7c3aed', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
+                  <p style={{ margin: 0, color: '#5b21b6', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -1258,36 +1272,36 @@ export default function Admin({ initialRole = 'admin' }) {
           {activeTab === 'analytics' && selectedEvent && (
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Event Analytics</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
                 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{guests.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Invited</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #bfdbfe', boxShadow: '0 4px 16px rgba(37,99,235,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#dbeafe', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoPeople size={24} color="#2563eb" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#2563eb', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{guests.length}</h3>
+                  <p style={{ margin: 0, color: '#1e40af', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Invited</p>
                 </div>
                 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.rsvp_status === 'attending').length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #a7f3d0', boxShadow: '0 4px 16px rgba(16,185,129,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#d1fae5', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoCheckmarkCircle size={24} color="#059669" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#059669', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{guests.filter(g => g.rsvp_status === 'attending').length}</h3>
+                  <p style={{ margin: 0, color: '#065f46', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📍</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.checked_in_at).length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Checked In</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #fde68a', boxShadow: '0 4px 16px rgba(245,158,11,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#fef3c7', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoLocationSharp size={24} color="#d97706" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#d97706', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{guests.filter(g => g.checked_in_at).length}</h3>
+                  <p style={{ margin: 0, color: '#92400e', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Checked In</p>
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f43f5e', fontFamily: 'Playfair Display, serif' }}>{photos.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Photos Uploaded</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fff1f2 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #fecdd3', boxShadow: '0 4px 16px rgba(244,63,94,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#ffe4e6', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoCamera size={24} color="#e11d48" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#e11d48', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{photos.length}</h3>
+                  <p style={{ margin: 0, color: '#9f1239', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Photos Uploaded</p>
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{messages.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
+                <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #faf5ff 100%)', padding: '24px', borderRadius: '20px', border: '1px solid #e9d5ff', boxShadow: '0 4px 16px rgba(139,92,246,0.06)', textAlign: 'center' }}>
+                  <div style={{ background: '#f3e8ff', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}><IoChatbubbles size={24} color="#7c3aed" /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '32px', color: '#7c3aed', fontFamily: 'Playfair Display, serif', fontWeight: 700 }}>{messages.length}</h3>
+                  <p style={{ margin: 0, color: '#5b21b6', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
                 </div>
 
               </div>
