@@ -107,7 +107,7 @@ export default function PhotoGallery({ event, eventId }) {
                 position: 'absolute',
                 top: '-16px',
                 right: '-16px',
-                background: 'white',
+                background: 'var(--bg-card)',
                 border: 'none',
                 width: '40px',
                 height: '40px',

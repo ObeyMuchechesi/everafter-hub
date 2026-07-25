@@ -71,7 +71,7 @@ export default function RSVP() {
   if (error) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf2f8' }}>
-        <div style={{ background: 'white', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+        <div style={{ background: 'var(--bg-card)', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
           <h2 style={{ color: '#ef4444', marginBottom: '16px', fontFamily: 'Playfair Display, serif' }}>Oops!</h2>
           <p style={{ color: '#4b5563' }}>{error}</p>
         </div>
@@ -81,7 +81,7 @@ export default function RSVP() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf2f8', padding: '20px' }}>
-      <div style={{ background: 'white', padding: '40px 30px', borderRadius: '24px', maxWidth: '480px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
+      <div style={{ background: 'var(--bg-card)', padding: '40px 30px', borderRadius: '24px', maxWidth: '480px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <p style={{ textTransform: 'uppercase', letterSpacing: '2px', color: '#f43f5e', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>You are invited to</p>
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '32px', color: '#1f2937', marginBottom: '8px' }}>{event.event_name}</h1>

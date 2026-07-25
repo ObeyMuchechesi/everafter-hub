@@ -77,7 +77,7 @@ export default function NewRSVP() {
   if (error || !event) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fdf2f8' }}>
-        <div style={{ background: 'white', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+        <div style={{ background: 'var(--bg-card)', padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
           <h2 style={{ color: '#ef4444', marginBottom: '16px', fontFamily: 'Playfair Display, serif' }}>Oops!</h2>
           <p style={{ color: '#4b5563' }}>{error}</p>
         </div>

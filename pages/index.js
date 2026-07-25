@@ -19,7 +19,7 @@ export default function EventLanding({ event }) {
         background: 'linear-gradient(135deg, #fff1f2, #fdf2f8, #fffbeb)'
       }}>
         <div style={{
-          background: 'white',
+          background: 'var(--bg-card)',
           borderRadius: '24px',
           padding: '48px',
           width: '100%',

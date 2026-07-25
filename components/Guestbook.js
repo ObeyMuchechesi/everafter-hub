@@ -73,7 +73,7 @@ export default function Guestbook({ name, eventId }) {
         {!loading && messages.length === 0 && <p style={{ color: '#9ca3af' }}>No messages yet. Be the first to write one.</p>}
         {messages.map((msg, i) => (
           <div key={i} style={{
-            background: 'white',
+            background: 'var(--bg-card)',
             borderRadius: '12px',
             padding: '16px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',

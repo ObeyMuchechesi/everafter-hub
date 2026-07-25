@@ -287,7 +287,7 @@ export default function EventPage() {
               transition={{ duration: 0.3 }}
             >
               {activeTab === 'details' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '0 0 40px 0', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '0 0 40px 0', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                   {event.coverPhoto && (
                     <img src={event.coverPhoto} alt="Event Cover" style={{ width: '100%', height: '200px', objectFit: 'cover', marginBottom: '20px' }} />
                   )}
@@ -302,7 +302,7 @@ export default function EventPage() {
               )}
 
               {activeTab === 'timeline' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                   <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '24px', textAlign: 'center', fontSize: '22px' }}>Event Timeline</h3>
                   {event.timeline.map((item, i) => (
                     <div key={i} style={{ display: 'flex', gap: '16px', marginBottom: '20px', padding: '0 10px' }}>
@@ -318,7 +318,7 @@ export default function EventPage() {
               )}
 
               {activeTab === 'menu' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                   <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '30px', textAlign: 'center', fontSize: '24px' }}>The Menu</h3>
                   {['starter', 'main', 'dessert'].map(course => (
                     event.menu[course] && (
@@ -333,7 +333,7 @@ export default function EventPage() {
               )}
 
               {activeTab === 'photos' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                   <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px', fontSize: '22px', textAlign: 'center' }}>Photo Gallery</h3>
                   
                   <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '16px', marginBottom: '24px' }}>
@@ -366,7 +366,7 @@ export default function EventPage() {
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       {photos.map(photo => (
-                        <div key={photo.id} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: 'white' }}>
+                        <div key={photo.id} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: 'var(--bg-card)' }}>
                           <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover', display: 'block' }} />
                           <div style={{ padding: '8px' }}>
                             {photo.caption && <p style={{ fontSize: '12px', margin: '0 0 4px', fontWeight: 500 }}>{photo.caption}</p>}
@@ -380,7 +380,7 @@ export default function EventPage() {
               )}
 
               {activeTab === 'messages' && (
-                <div style={{ background: 'white', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                   <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '8px', fontSize: '22px', textAlign: 'center' }}>Guestbook</h3>
                   <p style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Leave a message for {event.couple}!</p>
                   
@@ -415,7 +415,7 @@ export default function EventPage() {
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        style={{ background: 'white', borderRadius: '24px', padding: '40px 30px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
+        style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '40px 30px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
       >
         <div style={{ width: '60px', height: '4px', background: 'linear-gradient(to right, #fb7185, #fbbf24)', borderRadius: '9999px', margin: '0 auto 24px' }}></div>
         <h1 style={{ fontSize: '32px', fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '4px', color: '#1f2937' }}>{event.couple}</h1>

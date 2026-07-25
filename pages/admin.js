@@ -685,7 +685,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
       {showQRModal && qrEvent && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', textAlign: 'center', maxWidth: '420px', width: '90%' }}>
+          <div style={{ background: 'var(--bg-card)', padding: '32px', borderRadius: '20px', textAlign: 'center', maxWidth: '420px', width: '90%' }}>
             <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '4px' }}>{qrEvent.event_name}</h3>
             <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>
               {qrEvent.event_type} • {new Date(qrEvent.event_date).toLocaleDateString()}
@@ -715,7 +715,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
       {showPasswordForm && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '16px', width: '400px' }}>
+          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '16px', width: '400px' }}>
             <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '16px' }}>Change Password</h3>
             <form onSubmit={changePassword}>
               {isAdmin && (
@@ -788,24 +788,24 @@ export default function Admin({ initialRole = 'admin' }) {
           {activeTab === 'events' && (
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div><IoStar size={32} color="#f43f5e" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{events.length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
                 </div>
                 {isAdmin && (
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                     <div><IoPeople size={32} color="#10b981" style={{ marginBottom: '8px' }} /></div>
                     <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{users.length}</h3>
                     <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
                   </div>
                 )}
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div><IoCalendar size={32} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) >= new Date()).length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Upcoming Events</p>
                 </div>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div><IoTime size={32} color="#8b5cf6" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
@@ -826,7 +826,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               </div>
               {showEventForm && (
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                   <form onSubmit={createEvent} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', gridColumn: '1 / -1' }}>
                       <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>Select Event Type</label>
@@ -955,7 +955,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {events.map(event => (
-                <div key={event.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div key={event.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '50px', height: '50px', flexShrink: 0 }}>
                       <QRCodeCanvas value={`${baseUrl}/event?id=${event.slug}`} size={50} level="L" fgColor="#e11d48" bgColor="#ffffff" includeMargin={false} />
@@ -987,7 +987,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 const managingEvents = events.filter(e => e.user_id === user.id);
                 const eventNames = managingEvents.map(e => e.event_name).join(', ') || 'No events assigned';
                 return (
-                  <div key={user.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={user.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name} <span style={{fontSize:'12px', color:'#9ca3af', fontWeight: 400}}>({user.role})</span></p>
                       <p style={{ color: '#4b5563', fontSize: '13px', margin: '4px 0 0 0', fontWeight: 500 }}>Events: {eventNames}</p>
@@ -1040,7 +1040,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               </div>
 
-              <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px' }}>
+              <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px' }}>
                 <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete All Events</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input placeholder="Type 'deleteevents'" value={dangerInput.events} onChange={(e) => setDangerInput({...dangerInput, events: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
@@ -1048,7 +1048,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               </div>
 
-              <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px' }}>
+              <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5', marginBottom: '20px' }}>
                 <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete All Users</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input placeholder="Type 'deleteusers'" value={dangerInput.users} onChange={(e) => setDangerInput({...dangerInput, users: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }} />
@@ -1056,7 +1056,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               </div>
 
-              <div style={{ background: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5' }}>
+              <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid #fca5a5' }}>
                 <h3 style={{ margin: '0 0 10px 0', color: '#b91c1c' }}>Delete Guests</h3>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
                   <select value={dangerInput.targetEventId} onChange={(e) => setDangerInput({...dangerInput, targetEventId: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
@@ -1084,7 +1084,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               </div>
               {showImportForm && (
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
                   <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#6b7280' }}>Upload a CSV, Excel (.xlsx/.xls), Word (.docx), or PDF guest list. First name, surname, and phone number (if present) will be extracted automatically — duplicate names are all added, nothing is skipped.</p>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input type="file" accept=".csv,.xlsx,.xls,.docx,.pdf" onChange={handleImportFileSelect} style={{ padding: '8px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: 1, minWidth: '220px' }} />
@@ -1100,7 +1100,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {showGuestForm && (
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
                   <form onSubmit={addGuest} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
                     <input placeholder="First Name" value={newGuest.first_name} onChange={(e) => setNewGuest({...newGuest, first_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Surname" value={newGuest.last_name} onChange={(e) => setNewGuest({...newGuest, last_name: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
@@ -1112,7 +1112,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {guests.filter(g => guestSearch === '' || g.first_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.last_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.table_number.toString().includes(guestSearch)).map(guest => (
-                <div key={guest.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div key={guest.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontWeight: 700, fontSize: '15px' }}>{guest.first_name} {guest.last_name}</span>
@@ -1152,7 +1152,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 <button onClick={() => setShowTimelineForm(!showTimelineForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Item</button>
               </div>
               {showTimelineForm && (
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
                   <form onSubmit={addTimeline} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
                     <input type="time" value={newTimeline.event_time} onChange={(e) => setNewTimeline({...newTimeline, event_time: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
                     <input placeholder="Title" value={newTimeline.title} onChange={(e) => setNewTimeline({...newTimeline, title: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} required />
@@ -1163,7 +1163,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {timeline.map(item => (
-                <div key={item.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div key={item.id} style={{ background: 'var(--bg-card)', padding: '12px 16px', borderRadius: '10px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div><span style={{ fontWeight: 600, color: '#f43f5e' }}>{item.event_time?.slice(0,5)}</span><span style={{ fontWeight: 600, marginLeft: '12px' }}>{item.title}</span><span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>{item.location}</span></div>
                   <button onClick={() => deleteItem('timeline_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
                 </div>
@@ -1178,7 +1178,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 <button onClick={() => { setEditingMenu(null); setNewMenu({ course_type: 'starter', dish_name: '', description: '' }); setShowMenuForm(!showMenuForm); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showMenuForm ? 'Cancel' : '+ Add Course'}</button>
               </div>
               {showMenuForm && (
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px' }}>
                   <h4 style={{ marginBottom: '12px' }}>{editingMenu ? 'Edit Course' : 'Add New Course'}</h4>
                   <form onSubmit={addMenu} style={{ display: 'grid', gap: '10px', gridTemplateColumns: '1fr 1fr' }}>
                     <select value={newMenu.course_type} onChange={(e) => setNewMenu({...newMenu, course_type: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }}>
@@ -1197,7 +1197,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   <div key={type} style={{ marginBottom: '20px' }}>
                     <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px', fontWeight: 600 }}>{type === 'starter' && '🥗 Starters'}{type === 'main' && '🍖 Main Courses'}{type === 'dessert' && '🍫 Desserts'}{type === 'drinks' && '🍷 Drinks'}</h3>
                     {items.map(item => (
-                      <div key={item.id} style={{ background: 'white', padding: '12px 16px', borderRadius: '10px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                      <div key={item.id} style={{ background: 'var(--bg-card)', padding: '12px 16px', borderRadius: '10px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                         <div><span style={{ fontWeight: 600 }}>{item.dish_name}</span>{item.description && <span style={{ color: '#6b7280', fontSize: '13px', marginLeft: '12px' }}>— {item.description}</span>}</div>
                         <div style={{ display: 'flex', gap: '6px' }}><button onClick={() => editMenuItem(item)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Edit</button><button onClick={() => deleteItem('menu_items', item.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Delete</button></div>
                       </div>
@@ -1213,7 +1213,7 @@ export default function Admin({ initialRole = 'admin' }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Photos — {selectedEvent.event_name}</h2>
               </div>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <h4 style={{ marginBottom: '12px' }}>Upload New Photo</h4>
                 {!galleryPhotoPreview ? (
                   <div>
@@ -1237,7 +1237,7 @@ export default function Admin({ initialRole = 'admin' }) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.filter(p => p.is_approved).map(photo => (
-                  <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div key={photo.id} style={{ background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                     <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
                     <div style={{ padding: '10px' }}><p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p><div style={{ display: 'flex', gap: '6px' }}><button onClick={() => approvePhoto(photo.id, false)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Unapprove</button><button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button></div></div>
                   </div>
@@ -1250,7 +1250,7 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Guestbook — {selectedEvent.event_name}</h2>
               {messages.map(msg => (
-                <div key={msg.id} style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}><div><p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p><p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p></div><button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button></div>
+                <div key={msg.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}><div><p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p><p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p></div><button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button></div>
               ))}
             </div>
           )}
@@ -1260,38 +1260,38 @@ export default function Admin({ initialRole = 'admin' }) {
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Event Analytics</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{guests.length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Invited</p>
                 </div>
                 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.rsvp_status === 'attending').length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📍</div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.checked_in_at).length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Checked In</p>
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f43f5e', fontFamily: 'Playfair Display, serif' }}>{photos.length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Photos Uploaded</p>
                 </div>
 
-                <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{messages.length}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
                 </div>
 
               </div>
-              <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#1f2937' }}>Dietary Requirements Overview</h3>
                 <ul style={{ paddingLeft: '20px', color: '#4b5563', lineHeight: 1.6 }}>
                   {guests.filter(g => g.dietary_requirements).length > 0 ? (
@@ -1313,7 +1313,7 @@ export default function Admin({ initialRole = 'admin' }) {
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photo Moderation Queue</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.filter(p => !p.is_approved).map(photo => (
-                  <div key={photo.id} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div key={photo.id} style={{ background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
                     <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
                     <div style={{ padding: '10px' }}>
                       <p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p>
@@ -1329,7 +1329,7 @@ export default function Admin({ initialRole = 'admin' }) {
             </div>
           )}
           {activeTab === 'live_chat' && selectedEvent && (
-            <div style={{ display: 'flex', flexDirection: 'column', height: '600px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', height: '600px', background: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif', margin: 0 }}>Live Chat Support</h2>
                 <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>Chat directly with guests in real-time.</p>
