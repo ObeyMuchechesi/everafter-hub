@@ -27,13 +27,13 @@ body {
     "header"
     "main"
     "nav";
-  background-color: #f8fafc;
+  background-color: #f9fafb;
   overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .dashboard-layout {
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: 80px 1fr;
     grid-template-rows: auto 1fr;
     grid-template-areas: 
       "nav header"
@@ -50,14 +50,15 @@ body {
 /* Sidebar / Bottom Nav */
 .dashboard-nav {
   grid-area: nav;
-  background: #0f172a;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   padding: 12px 12px;
   z-index: 50;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
 }
 
 .nav-items-container {
@@ -70,13 +71,12 @@ body {
 @media (min-width: 768px) {
   .dashboard-nav {
     border-top: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #090d16 100%);
+    border-right: 1px solid var(--glass-border);
     padding: 24px 16px;
     overflow-y: auto;
     overflow-x: hidden;
     transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+    box-shadow: none;
   }
   
   .nav-items-container {
@@ -87,22 +87,20 @@ body {
 
 .dashboard-header {
   grid-area: header;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 18px 28px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
-  z-index: 40;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dashboard-main {
   grid-area: main;
-  padding: 28px;
+  padding: 24px;
   overflow-y: auto;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 /* Stat Cards Grid */
