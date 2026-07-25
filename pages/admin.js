@@ -265,7 +265,7 @@ export default function Admin({ initialRole = 'admin' }) {
     loadMessages(event.id);
     loadLiveChat(event.id);
     setShowEventForm(false);
-    setActiveTab('guests');
+    setActiveTab('analytics');
   };
 
   const openQR = (event) => {
@@ -640,7 +640,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const adminBaseTabs = ['events', 'users', 'recycle', 'danger'];
   const userBaseTabs = ['events'];
   const baseTabs = isAdmin ? adminBaseTabs : userBaseTabs;
-  const eventTabs = ['guests', 'timeline', 'menu', 'photos', 'messages', 'analytics', 'table_planner', 'photo_queue', 'live_chat', 'reports'];
+  const eventTabs = ['analytics', 'guests', 'timeline', 'menu', 'photos', 'messages', 'table_planner', 'photo_queue', 'live_chat', 'reports'];
   
   let tabs = baseTabs;
   if (selectedEvent) {
