@@ -302,72 +302,7 @@ export default function EventPage() {
         </header>
         
 
-        {selectedPhoto && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', flexDirection: 'column' }} onClick={() => setSelectedPhoto(null)}>
-            <button onClick={() => setSelectedPhoto(null)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '30px', cursor: 'pointer', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
-            <img src={selectedPhoto.image_url} alt={selectedPhoto.caption} style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: '8px' }} onClick={(e) => e.stopPropagation()} />
-            <div style={{ color: 'white', marginTop: '16px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-              {selectedPhoto.caption && <p style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 500 }}>{selectedPhoto.caption}</p>}
-              <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>— {selectedPhoto.uploaded_by}</p>
-            </div>
-          </div>
-        )}
-        <nav className="dashboard-nav hide-scrollbar">
-          <div className="nav-items-container">
-            {tabs.map(t => {
-              const getGlowColor = (tabName) => {
-                switch(tabName) {
-                  case 'details': return 'rgba(244, 63, 94, 0.4)';
-                  case 'timeline': return 'rgba(139, 92, 246, 0.4)';
-                  case 'menu': return 'rgba(16, 185, 129, 0.4)';
-                  case 'photos': return 'rgba(59, 130, 246, 0.4)';
-                  case 'messages': return 'rgba(236, 72, 153, 0.4)';
-                  case 'chat': return 'rgba(99, 102, 241, 0.4)';
-                  case 'feedback': return 'rgba(245, 158, 11, 0.4)';
-                  default: return 'rgba(244, 63, 94, 0.4)';
-                }
-              };
-              const getActiveBg = (tabName) => {
-                switch(tabName) {
-                  case 'details': return 'linear-gradient(to right, #f43f5e, #ec4899)';
-                  case 'timeline': return 'linear-gradient(to right, #8b5cf6, #d946ef)';
-                  case 'menu': return 'linear-gradient(to right, #10b981, #3b82f6)';
-                  case 'photos': return 'linear-gradient(to right, #3b82f6, #06b6d4)';
-                  case 'messages': return 'linear-gradient(to right, #ec4899, #8b5cf6)';
-                  case 'chat': return 'linear-gradient(to right, #6366f1, #a855f7)';
-                  case 'feedback': return 'linear-gradient(to right, #f59e0b, #d97706)';
-                  default: return 'linear-gradient(to right, #f43f5e, #ec4899)';
-                }
-              };
-
-              const isActive = activeTab === t;
-              const isFeedback = t === 'feedback';
-
-              return (
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  key={t} 
-                  onClick={() => setActiveTab(t)} 
-                  style={{ 
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-                    padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', 
-                    background: isActive ? getActiveBg(t) : (isFeedback ? 'linear-gradient(to right, #fef3c7, #fde68a)' : 'white'), 
-                    color: isActive ? 'white' : (isFeedback ? '#b45309' : '#4b5563'), 
-                    position: 'relative', 
-                    border: isActive ? '2px solid transparent' : (isFeedback ? '1px solid #f59e0b' : '1px solid #e5e7eb'), 
-                    boxShadow: isActive ? `0 4px 12px ${getGlowColor(t)}` : '0 2px 4px rgba(0,0,0,0.02)',
-                    '--btn-glow-color': getGlowColor(t),
-                    animation: isActive ? 'tabPulse 2s infinite' : (isFeedback ? 'tabPulse 3s infinite' : 'none')
-                  }}
-                >
-                  <span style={{ fontSize: '20px', marginBottom: '4px' }}>
-                    {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'chat' && '✨'}{t === 'feedback' && '📢'}
-                  </span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{t === 'menu' ? 'Menu / Diet' : t.replace('_', ' ')}</span>
-                </motion.button>
-              );
-            })}
+        
           </div>
         </nav>
 
@@ -621,5 +556,6 @@ export default function EventPage() {
         <p style={{ textAlign: 'center', fontSize: '12px', color: '#d1d5db', marginTop: '30px' }}>EverAfter Hub</p>
       </motion.div>
     </div>
+    </>
   );
 }

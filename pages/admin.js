@@ -738,6 +738,18 @@ export default function Admin({ initialRole = 'admin' }) {
   };
 
   return (
+    <>
+
+      {selectedPhoto && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', flexDirection: 'column' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedPhoto(null); }}>
+          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedPhoto(null); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '30px', cursor: 'pointer', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000000 }}>&times;</button>
+          <img src={selectedPhoto.image_url} alt={selectedPhoto.caption} style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: '8px', zIndex: 1000000 }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} />
+          <div style={{ color: 'white', marginTop: '16px', textAlign: 'center', zIndex: 1000000 }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+            {selectedPhoto.caption && <p style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 500 }}>{selectedPhoto.caption}</p>}
+            <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>— {selectedPhoto.uploaded_by}</p>
+          </div>
+        </div>
+      )}
     <div className="dashboard-layout">
       <header className="dashboard-header">
         <div className="particles-container">
@@ -1369,9 +1381,9 @@ export default function Admin({ initialRole = 'admin' }) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.filter(p => p.is_approved).map(photo => (
-                  <div key={photo.id} style={{ background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div key={photo.id} onClick={() => setSelectedPhoto(photo)} style={{ background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', cursor: 'pointer' }}>
                     <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
-                    <div style={{ padding: '10px' }}><p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p><div style={{ display: 'flex', gap: '6px' }}><button onClick={() => approvePhoto(photo.id, false)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Unapprove</button><button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button></div></div>
+                    <div style={{ padding: '10px' }}><p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p><div style={{ display: 'flex', gap: '6px' }}><button onClick={(e) => { e.stopPropagation(); approvePhoto(photo.id, false); }} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Unapprove</button><button onClick={(e) => { e.stopPropagation(); deleteItem('photos', photo.id); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button></div></div>
                   </div>
                 ))}
               </div>
@@ -1495,13 +1507,13 @@ export default function Admin({ initialRole = 'admin' }) {
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Photo Moderation Queue</h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {photos.filter(p => !p.is_approved).map(photo => (
-                  <div key={photo.id} style={{ background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <div key={photo.id} onClick={() => setSelectedPhoto(photo)} style={{ background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', cursor: 'pointer' }}>
                     <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
                     <div style={{ padding: '10px' }}>
                       <p style={{ fontSize: '12px', margin: '0 0 8px 0' }}>{photo.caption || 'No caption'} — {photo.uploaded_by}</p>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <button onClick={() => approvePhoto(photo.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Approve</button>
-                        <button onClick={() => deleteItem('photos', photo.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Reject & Delete</button>
+                        <button onClick={(e) => { e.stopPropagation(); approvePhoto(photo.id, true); }} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Approve</button>
+                        <button onClick={(e) => { e.stopPropagation(); deleteItem('photos', photo.id); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Reject & Delete</button>
                       </div>
                     </div>
                   </div>
@@ -1543,5 +1555,6 @@ export default function Admin({ initialRole = 'admin' }) {
         </AnimatePresence>
       </main>
     </div>
+    </>
   );
 }
