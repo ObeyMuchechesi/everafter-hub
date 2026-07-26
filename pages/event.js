@@ -30,6 +30,9 @@ export default function EventPage() {
   const [liveChat, setLiveChat] = useState([]);
   const [newChat, setNewChat] = useState('');
 
+  const [dietText, setDietText] = useState('');
+  const [isSavingDiet, setIsSavingDiet] = useState(false);
+
   useEffect(() => {
     if (!router.isReady) return;
     if (id) {
@@ -37,7 +40,9 @@ export default function EventPage() {
       const storedGuest = localStorage.getItem(`everafter_guest_${id}`);
       if (storedGuest) {
         try {
-          setGuest(JSON.parse(storedGuest));
+          const parsedGuest = JSON.parse(storedGuest);
+          setGuest(parsedGuest);
+          setDietText(parsedGuest.dietary_requirements || '');
         } catch (e) {
           console.error('Failed to parse guest from localStorage', e);
         }
@@ -232,6 +237,21 @@ export default function EventPage() {
   if (loading) {
     return <FullPageLoader text="Loading Event..." />;
   }
+  const saveDietary = async () => {
+    if (!guest) return;
+    setIsSavingDiet(true);
+    const { error } = await supabase.from('guests').update({ dietary_requirements: dietText }).eq('id', guest.id);
+    if (!error) {
+      const updatedGuest = { ...guest, dietary_requirements: dietText };
+      setGuest(updatedGuest);
+      localStorage.setItem(`everafter_guest_${id}`, JSON.stringify(updatedGuest));
+      alert('Dietary requirements saved successfully!');
+    } else {
+      alert('Error saving dietary requirements.');
+    }
+    setIsSavingDiet(false);
+  };
+
 
   if (!event) {
     return (
@@ -249,11 +269,17 @@ export default function EventPage() {
     const tabs = ['details', 'timeline', 'menu', 'photos', 'messages', 'chat'];
     return (
       <div className="dashboard-layout" style={{ backgroundImage: event.backgroundTheme ? `url(${event.backgroundTheme})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh' }}>
-        <header className="dashboard-header" style={{ background: event.backgroundTheme ? 'rgba(255, 255, 255, 0.85)' : 'white', backdropFilter: 'blur(10px)' }}>
-          <motion.h2 initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)' }}>
-            {event.couple}
+        <header className="dashboard-header">
+          <div className="particles-container">
+            <div className="particle"></div><div className="particle"></div><div className="particle"></div>
+            <div className="particle"></div><div className="particle"></div><div className="particle"></div>
+            <div className="particle"></div>
+          </div>
+          <motion.h2 className="header-title-container" initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img src="/logo.png" alt="EverAfter Logo" className="header-logo-img" style={{ height: '120px', maxWidth: '250px', objectFit: 'contain', margin: '-20px 0 -20px -10px' }} /> 
+            <span className="header-title-text" style={{ whiteSpace: 'nowrap', textShadow: '0 2px 4px rgba(0,0,0,0.3)', color: 'white' }}>{event.couple}</span>
           </motion.h2>
-          <button onClick={() => { setGuest(null); localStorage.removeItem(`everafter_guest_${id}`); }} style={{ background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+          <button onClick={() => { setGuest(null); localStorage.removeItem(`everafter_guest_${id}`); }} style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, boxShadow: '0 4px 10px rgba(0,0,0,0.1)', backdropFilter: 'blur(4px)' }}>
             Sign Out
           </button>
         </header>
@@ -271,7 +297,7 @@ export default function EventPage() {
                 <span style={{ fontSize: '20px', marginBottom: '4px' }}>
                   {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'chat' && '✨'}
                 </span>
-                <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'capitalize' }}>{t}</span>
+                <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{t === 'menu' ? 'Menu / Diet' : t.replace('_', ' ')}</span>
               </motion.button>
             ))}
           </div>
@@ -328,7 +354,23 @@ export default function EventPage() {
                       </div>
                     )
                   ))}
-                  {!event.menu.starter && !event.menu.main && !event.menu.dessert && <p style={{ color: '#6b7280', textAlign: 'center' }}>Menu not available yet.</p>}
+                  {!event.menu.starter && !event.menu.main && !event.menu.dessert && <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '30px' }}>Menu not available yet.</p>}
+                  
+                  {guest && (
+                    <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '1px solid #f3f4f6' }}>
+                      <h4 style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', marginBottom: '12px', textAlign: 'center', color: '#111827' }}>Dietary Requirements</h4>
+                      <p style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', marginBottom: '16px' }}>Let us know if you have any allergies or dietary restrictions.</p>
+                      <textarea 
+                        value={dietText} 
+                        onChange={(e) => setDietText(e.target.value)} 
+                        placeholder="e.g. Vegetarian, Nut allergy..." 
+                        style={{ width: '100%', height: '80px', padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb', resize: 'none', marginBottom: '12px', fontFamily: 'inherit' }}
+                      />
+                      <button onClick={saveDietary} disabled={isSavingDiet} style={{ width: '100%', padding: '12px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', opacity: isSavingDiet ? 0.7 : 1 }}>
+                        {isSavingDiet ? 'Saving...' : 'Save Dietary Preferences'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

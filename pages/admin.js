@@ -801,7 +801,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
       <nav className="dashboard-nav hide-scrollbar">
         {selectedEvent && (
-          <div className="snake-border-container" style={{ marginBottom: '16px' }}>
+          <div className="snake-border-container" style={{ marginBottom: '16px', flexShrink: 0 }}>
             <div className="snake-border-inner" style={{ padding: '8px', textAlign: 'center', color: 'white' }}>
               <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Managing Event</p>
               <p style={{ margin: '4px 0 0 0', fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedEvent.event_name}</p>
@@ -832,7 +832,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 {tab === 'live_chat' && <IoChatbox size={24} color="#0ea5e9" />}
                 {tab === 'reports' && <IoDocumentText size={24} color="#64748b" />}
               </span>
-              <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{tab.replace('_', ' ')}</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{tab === 'menu' ? 'Menu / Diet' : tab.replace('_', ' ')}</span>
               {selectedEvent && eventTabs.includes(tab) && getTabCount(tab) > 0 && (
                 <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', fontSize: '10px', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 700, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                   {getTabCount(tab)}
