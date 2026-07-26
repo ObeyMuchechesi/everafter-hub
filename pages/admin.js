@@ -61,6 +61,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [messages, setMessages] = useState([]);
   const [liveChat, setLiveChat] = useState([]);
   const [newLiveChatMessage, setNewLiveChatMessage] = useState('');
+  const [feedbacks, setFeedbacks] = useState([]);
 
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrEvent, setQrEvent] = useState(null);
@@ -151,6 +152,7 @@ export default function Admin({ initialRole = 'admin' }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'photos', filter: `event_id=eq.${selectedEvent.id}` }, () => loadPhotos(selectedEvent.id, true))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'guestbook', filter: `event_id=eq.${selectedEvent.id}` }, () => loadMessages(selectedEvent.id, true))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_chat_messages', filter: `event_id=eq.${selectedEvent.id}` }, () => loadLiveChat(selectedEvent.id))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_feedback', filter: `event_id=eq.${selectedEvent.id}` }, () => loadFeedbacks(selectedEvent.id))
       .subscribe();
 
     return () => {
@@ -306,7 +308,12 @@ export default function Admin({ initialRole = 'admin' }) {
 
   const loadLiveChat = async (eventId) => {
     const { data } = await supabase.from('live_chat_messages').select('*').eq('event_id', eventId).order('created_at', { ascending: true });
-    setLiveChat(data || []);
+    if (data) setLiveChat(data);
+  };
+
+  const loadFeedbacks = async (eventId) => {
+    const { data } = await supabase.from('event_feedback').select('*').eq('event_id', eventId).order('created_at', { ascending: false });
+    if (data) setFeedbacks(data);
   };
 
 
@@ -318,6 +325,7 @@ export default function Admin({ initialRole = 'admin' }) {
     loadPhotos(event.id);
     loadMessages(event.id);
     loadLiveChat(event.id);
+    loadFeedbacks(event.id);
     setShowEventForm(false);
     setActiveTab('analytics');
   };
@@ -1432,6 +1440,24 @@ export default function Admin({ initialRole = 'admin' }) {
                     <li>No dietary requirements reported.</li>
                   )}
                 </ul>
+              </div>
+              
+              <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginTop: '24px' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>📢</span> Anonymous Guest Feedback
+                </h3>
+                {feedbacks.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {feedbacks.map(fb => (
+                      <div key={fb.id} style={{ background: '#f9fafb', padding: '16px', borderRadius: '12px', borderLeft: '4px solid #f59e0b' }}>
+                        <p style={{ margin: '0 0 8px', color: '#374151', lineHeight: '1.5', fontStyle: 'italic' }}>"{fb.feedback}"</p>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>{new Date(fb.created_at).toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No feedback received yet.</p>
+                )}
               </div>
             </div>
           )}

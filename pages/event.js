@@ -33,6 +33,9 @@ export default function EventPage() {
   const [dietText, setDietText] = useState('');
   const [isSavingDiet, setIsSavingDiet] = useState(false);
 
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
   useEffect(() => {
     if (!router.isReady) return;
     if (id) {
@@ -252,6 +255,19 @@ export default function EventPage() {
     setIsSavingDiet(false);
   };
 
+  const submitFeedback = async (e) => {
+    e.preventDefault();
+    if (!guest || !feedbackText.trim()) return;
+    setIsSubmittingFeedback(true);
+    const { error } = await supabase.from('event_feedback').insert({ event_id: event.id, feedback: feedbackText });
+    if (!error) {
+      setFeedbackText('');
+      alert('Thank you! Your feedback has been sent anonymously.');
+    } else {
+      alert('Error sending feedback. Please try again.');
+    }
+    setIsSubmittingFeedback(false);
+  };
 
   if (!event) {
     return (
@@ -266,7 +282,7 @@ export default function EventPage() {
   }
 
   if (guest) {
-    const tabs = ['details', 'timeline', 'menu', 'photos', 'messages', 'chat'];
+    const tabs = ['details', 'timeline', 'menu', 'photos', 'messages', 'chat', 'feedback'];
     return (
       <div className="dashboard-layout" style={{ backgroundImage: event.backgroundTheme ? `url(${event.backgroundTheme})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', minHeight: '100vh' }}>
         <header className="dashboard-header">
@@ -295,7 +311,7 @@ export default function EventPage() {
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === t ? 'linear-gradient(to right, #f43f5e, #ec4899)' : 'white', color: activeTab === t ? 'white' : '#4b5563', position: 'relative', border: activeTab === t ? '2px solid transparent' : '1px solid #e5e7eb', boxShadow: activeTab === t ? '0 4px 12px rgba(244,63,94,0.3)' : '0 2px 4px rgba(0,0,0,0.02)' }}
               >
                 <span style={{ fontSize: '20px', marginBottom: '4px' }}>
-                  {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'chat' && '✨'}
+                  {t === 'details' && '👤'}{t === 'timeline' && '⏱'}{t === 'menu' && '🍽'}{t === 'photos' && '📸'}{t === 'messages' && '💬'}{t === 'chat' && '✨'}{t === 'feedback' && '📢'}
                 </span>
                 <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'capitalize' }}>{t === 'menu' ? 'Menu / Diet' : t.replace('_', ' ')}</span>
               </motion.button>
@@ -441,6 +457,21 @@ export default function EventPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'feedback' && (
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '30px 20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                  <h3 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '12px', textAlign: 'center', fontSize: '24px' }}>Send Feedback</h3>
+                  <div style={{ background: '#fef3c7', color: '#92400e', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '13px', lineHeight: '1.5' }}>
+                    <strong>Note:</strong> Your feedback is completely anonymous and will only be visible to the event organizers and admins to help improve event handling.
+                  </div>
+                  <form onSubmit={submitFeedback}>
+                    <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Let us know where we can improve..." style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', height: '120px', boxSizing: 'border-box', fontSize: '15px', resize: 'vertical' }} required></textarea>
+                    <button type="submit" disabled={isSubmittingFeedback} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', marginTop: '16px', background: 'linear-gradient(to right, #f59e0b, #d97706)', color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 600, cursor: isSubmittingFeedback ? 'not-allowed' : 'pointer', fontSize: '15px' }}>
+                      {isSubmittingFeedback ? <><Spinner size="20px" /> Sending...</> : 'Send Feedback Anonymously'}
+                    </button>
+                  </form>
                 </div>
               )}
             </motion.div>
