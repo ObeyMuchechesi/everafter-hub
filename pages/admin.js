@@ -729,6 +729,11 @@ export default function Admin({ initialRole = 'admin' }) {
   return (
     <div className="dashboard-layout">
       <header className="dashboard-header">
+        <div className="particles-container">
+          <div className="particle"></div><div className="particle"></div><div className="particle"></div>
+          <div className="particle"></div><div className="particle"></div><div className="particle"></div>
+          <div className="particle"></div>
+        </div>
         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
           <h1 className="header-title-container" style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
             <img src="/logo.png" alt="EverAfter Logo" className="header-logo-img" style={{ height: '120px', maxWidth: '250px', objectFit: 'contain', margin: '-20px 0 -20px -10px' }} /> 
