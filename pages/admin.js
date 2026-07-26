@@ -1318,6 +1318,18 @@ export default function Admin({ initialRole = 'admin' }) {
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
                 </div>
 
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🍽️</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#2563eb', fontFamily: 'Playfair Display, serif' }}>{Math.ceil(guests.length / selectedEvent.chairs_per_table)} / {selectedEvent.number_of_tables}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Tables Used</p>
+                </div>
+
+                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🪑</div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#059669', fontFamily: 'Playfair Display, serif' }}>{guests.length} / {Math.max(0, (selectedEvent.number_of_tables * selectedEvent.chairs_per_table) - guests.length)}</h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Occupied / Left</p>
+                </div>
+
               </div>
               <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', color: '#1f2937' }}>Dietary Requirements Overview</h3>
