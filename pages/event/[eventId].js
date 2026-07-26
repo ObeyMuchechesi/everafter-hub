@@ -144,6 +144,7 @@ export default function EventPage() {
             <button type="button" onClick={() => { setShowPhonePrompt(false); setError(''); }} style={{width:'100%',background:'transparent',color:'#6b7280',padding:14,border:'none',fontWeight:500,fontSize:14,cursor:'pointer',marginTop:8}}>Cancel</button>
           </form>
         )}
+        </div>
       </div>
     </div>
   );
