@@ -183,37 +183,45 @@ export default function Admin({ initialRole = 'admin' }) {
 
   const loadEvents = async (user = currentUser, filterId = adminUserFilter) => {
     setIsLoading(true);
-    let query = supabase.from('events').select('*').order('event_date', { ascending: true });
+    try {
+      let query = supabase.from('events').select('*').order('event_date', { ascending: true });
 
-    if (user && user.role !== 'admin') {
-      query = query.eq('user_id', user.id);
-    } else if (filterId !== 'all') {
-      query = query.eq('user_id', filterId);
+      if (user && user.role !== 'admin') {
+        query = query.eq('user_id', user.id);
+      } else if (filterId !== 'all') {
+        query = query.eq('user_id', filterId);
+      }
+
+      const { data, error } = await query;
+      if (error) console.error("Error loading events:", error);
+      const allEvents = data || [];
+
+      const { data: allGuests, error: guestError } = await supabase.from('guests').select('event_id');
+      if (guestError) console.error("Error loading guests:", guestError);
+      
+      const guestCounts = (allGuests || []).reduce((acc, g) => {
+        acc[g.event_id] = (acc[g.event_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      const eventsWithCounts = allEvents.map(e => ({
+        ...e,
+        guestCount: guestCounts[e.id] || 0
+      }));
+
+      setEvents(eventsWithCounts.filter(e => !e.is_deleted));
+      setDeletedEvents(eventsWithCounts.filter(e => e.is_deleted));
+      
+      if (user && user.role === 'admin') {
+        const { count, error: countError } = await supabase.from('guests').select('*', { count: 'exact', head: true });
+        if (countError) console.error("Error counting guests:", countError);
+        setTotalGuestsCount(count || 0);
+      }
+    } catch (err) {
+      console.error("Unhandled exception in loadEvents:", err);
+    } finally {
+      setIsLoading(false);
     }
-
-    const { data } = await query;
-    const allEvents = data || [];
-
-    const { data: allGuests } = await supabase.from('guests').select('event_id');
-    const guestCounts = (allGuests || []).reduce((acc, g) => {
-      acc[g.event_id] = (acc[g.event_id] || 0) + 1;
-      return acc;
-    }, {});
-
-    const eventsWithCounts = allEvents.map(e => ({
-      ...e,
-      guestCount: guestCounts[e.id] || 0
-    }));
-
-    setEvents(eventsWithCounts.filter(e => !e.is_deleted));
-    setDeletedEvents(eventsWithCounts.filter(e => e.is_deleted));
-    
-    if (user && user.role === 'admin') {
-      const { count } = await supabase.from('guests').select('*', { count: 'exact', head: true });
-      setTotalGuestsCount(count || 0);
-    }
-    
-    setIsLoading(false);
   };
 
   const deleteEvent = async (id) => {
