@@ -17,6 +17,7 @@ export default function EventPage() {
   const [guest, setGuest] = useState(null);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   
   // Dashboard state
   const [activeTab, setActiveTab] = useState('details');
@@ -300,6 +301,17 @@ export default function EventPage() {
           </button>
         </header>
         
+
+        {selectedPhoto && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', flexDirection: 'column' }} onClick={() => setSelectedPhoto(null)}>
+            <button onClick={() => setSelectedPhoto(null)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '30px', cursor: 'pointer', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+            <img src={selectedPhoto.image_url} alt={selectedPhoto.caption} style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: '8px' }} onClick={(e) => e.stopPropagation()} />
+            <div style={{ color: 'white', marginTop: '16px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+              {selectedPhoto.caption && <p style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 500 }}>{selectedPhoto.caption}</p>}
+              <p style={{ margin: 0, fontSize: '14px', opacity: 0.8 }}>— {selectedPhoto.uploaded_by}</p>
+            </div>
+          </div>
+        )}
         <nav className="dashboard-nav hide-scrollbar">
           <div className="nav-items-container">
             {tabs.map(t => {
@@ -464,7 +476,7 @@ export default function EventPage() {
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       {photos.map(photo => (
-                        <div key={photo.id} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: 'var(--bg-card)' }}>
+                        <div key={photo.id} onClick={() => setSelectedPhoto(photo)} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: 'var(--bg-card)', cursor: 'pointer' }}>
                           <img src={photo.image_url} alt={photo.caption} style={{ width: '100%', height: '150px', objectFit: 'cover', display: 'block' }} />
                           <div style={{ padding: '8px' }}>
                             {photo.caption && <p style={{ fontSize: '12px', margin: '0 0 4px', fontWeight: 500 }}>{photo.caption}</p>}

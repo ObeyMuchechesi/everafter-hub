@@ -44,6 +44,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [role, setRole] = useState(initialRole || (router.query?.role === 'user' ? 'user' : 'admin'));
   const [activeTab, setActiveTab] = useState('events');
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [adminUserFilter, setAdminUserFilter] = useState('all');
   const [events, setEvents] = useState([]);
