@@ -730,11 +730,11 @@ export default function Admin({ initialRole = 'admin' }) {
     <div className="dashboard-layout">
       <header className="dashboard-header">
         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src="/logo.png" alt="EverAfter Logo" style={{ height: '120px', maxWidth: '250px', objectFit: 'contain', margin: '-20px 0 -20px -10px' }} /> 
-            <span style={{ whiteSpace: 'nowrap', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>EverAfter {isAdmin ? 'Admin' : 'User'}</span>
+          <h1 className="header-title-container" style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img src="/logo.png" alt="EverAfter Logo" className="header-logo-img" style={{ height: '120px', maxWidth: '250px', objectFit: 'contain', margin: '-20px 0 -20px -10px' }} /> 
+            <span className="header-title-text" style={{ whiteSpace: 'nowrap', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>EverAfter {isAdmin ? 'Admin' : 'User'}</span>
           </h1>
-          <p style={{ margin: '0 0 0 10px', color: 'rgba(255,255,255,0.85)', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>{roleTheme.description}</p>
+          <p className="header-subtitle" style={{ margin: '0 0 0 10px', color: 'rgba(255,255,255,0.85)', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>{roleTheme.description}</p>
         </motion.div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: roleTheme.primary, background: 'rgba(255, 255, 255, 0.85)', border: `1px solid rgba(255,255,255,1)`, padding: '4px 12px', borderRadius: '999px', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>{roleTheme.badge}</span>
@@ -796,9 +796,11 @@ export default function Admin({ initialRole = 'admin' }) {
 
       <nav className="dashboard-nav hide-scrollbar">
         {selectedEvent && (
-          <div style={{ marginBottom: '16px', padding: '8px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', borderRadius: '12px', textAlign: 'center', color: 'white', boxShadow: '0 4px 10px rgba(244,63,94,0.2)' }}>
-            <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Managing Event</p>
-            <p style={{ margin: '4px 0 0 0', fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedEvent.event_name}</p>
+          <div className="snake-border-container" style={{ marginBottom: '16px' }}>
+            <div className="snake-border-inner" style={{ padding: '8px', textAlign: 'center', color: 'white' }}>
+              <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px' }}>Managing Event</p>
+              <p style={{ margin: '4px 0 0 0', fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedEvent.event_name}</p>
+            </div>
           </div>
         )}
         <div className="nav-items-container">
@@ -808,7 +810,8 @@ export default function Admin({ initialRole = 'admin' }) {
               whileTap={{ scale: 0.95 }}
               key={tab} 
               onClick={() => handleTabClick(tab)} 
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
+              className={activeTab === tab ? "animated-active-btn" : ""}
+              style={{ '--btn-glow-color': roleTheme.accent, '--btn-bg': roleTheme.glow, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderRadius: '12px', cursor: 'pointer', background: activeTab === tab ? roleTheme.glow : 'white', color: activeTab === tab ? roleTheme.accent : '#4b5563', position: 'relative', border: activeTab === tab ? `2px solid ${roleTheme.accent}` : '1px solid #e5e7eb', boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.02)' }}
             >
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', color: activeTab === tab ? roleTheme.accent : '#6b7280' }}>
                 {tab === 'events' && <IoCalendar size={24} color="#f43f5e" />}
