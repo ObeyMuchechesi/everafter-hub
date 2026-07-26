@@ -193,8 +193,20 @@ export default function Admin({ initialRole = 'admin' }) {
 
     const { data } = await query;
     const allEvents = data || [];
-    setEvents(allEvents.filter(e => !e.is_deleted));
-    setDeletedEvents(allEvents.filter(e => e.is_deleted));
+
+    const { data: allGuests } = await supabase.from('guests').select('event_id');
+    const guestCounts = (allGuests || []).reduce((acc, g) => {
+      acc[g.event_id] = (acc[g.event_id] || 0) + 1;
+      return acc;
+    }, {});
+
+    const eventsWithCounts = allEvents.map(e => ({
+      ...e,
+      guestCount: guestCounts[e.id] || 0
+    }));
+
+    setEvents(eventsWithCounts.filter(e => !e.is_deleted));
+    setDeletedEvents(eventsWithCounts.filter(e => e.is_deleted));
     
     if (user && user.role === 'admin') {
       const { count } = await supabase.from('guests').select('*', { count: 'exact', head: true });
@@ -963,7 +975,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {events.map(event => (
-                <div key={event.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div key={event.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '50px', height: '50px', flexShrink: 0 }}>
                       <QRCodeCanvas value={`${baseUrl}/event?id=${event.slug}`} size={50} level="L" fgColor="#e11d48" bgColor="#ffffff" includeMargin={false} />
@@ -972,10 +984,18 @@ export default function Admin({ initialRole = 'admin' }) {
                       <p style={{ fontWeight: 600, margin: 0 }}>{event.event_name}</p>
                       <p style={{ color: '#6b7280', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()} • {event.venue}</p>
                       {isAdmin && <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>Assigned to: {users.find((u) => u.id === event.user_id)?.full_name || 'Unassigned'}</p>}
-                      <code style={{ fontSize: '11px', color: '#f43f5e' }}>event?id={event.slug}</code>
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                          🪑 {event.guestCount || 0} occupied / {Math.max(0, (event.number_of_tables * event.chairs_per_table) - (event.guestCount || 0))} left
+                        </span>
+                        <span style={{ fontSize: '11px', background: '#eff6ff', color: '#2563eb', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                          🍽️ {Math.ceil((event.guestCount || 0) / event.chairs_per_table)} used / {event.number_of_tables} total
+                        </span>
+                      </div>
+                      <code style={{ fontSize: '11px', color: '#f43f5e', display: 'block', marginTop: '6px' }}>event?id={event.slug}</code>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     <button onClick={() => openQR(event)} style={{ background: '#dbeafe', color: '#1e40af', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>📱 QR</button>
                     <button onClick={() => { setEditingEventId(event.id); setNewEvent({...event, assigned_user_id: event.user_id}); setShowEventForm(true); }} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Edit</button>
                     {isAdmin && <button onClick={() => deleteEvent(event.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>}
@@ -995,13 +1015,13 @@ export default function Admin({ initialRole = 'admin' }) {
                 const managingEvents = events.filter(e => e.user_id === user.id);
                 const eventNames = managingEvents.map(e => e.event_name).join(', ') || 'No events assigned';
                 return (
-                  <div key={user.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={user.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <p style={{ fontWeight: 600, margin: 0 }}>{user.full_name} <span style={{fontSize:'12px', color:'#9ca3af', fontWeight: 400}}>({user.role})</span></p>
                       <p style={{ color: '#4b5563', fontSize: '13px', margin: '4px 0 0 0', fontWeight: 500 }}>Events: {eventNames}</p>
                       <p style={{ color: '#9ca3af', fontSize: '12px', margin: '4px 0 0 0' }}>{user.email}</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                       <button onClick={() => deleteUser(user.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
                     </div>
                   </div>
@@ -1017,14 +1037,17 @@ export default function Admin({ initialRole = 'admin' }) {
               </div>
               {deletedEvents.length === 0 && <p style={{ color: '#6b7280', fontSize: '14px' }}>No deleted events.</p>}
               {deletedEvents.map(event => (
-                <div key={event.id} style={{ background: '#fff1f2', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #fecdd3' }}>
+                <div key={event.id} style={{ background: '#fff1f2', padding: '16px', borderRadius: '12px', marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #fecdd3' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '50px', height: '50px', flexShrink: 0, opacity: 0.5 }}>
+                      <QRCodeCanvas value={`${baseUrl}/event?id=${event.slug}`} size={50} level="L" fgColor="#9ca3af" bgColor="#ffffff" includeMargin={false} />
+                    </div>
                     <div>
-                      <p style={{ fontWeight: 600, margin: 0, color: '#9f1239' }}>{event.event_name}</p>
-                      <p style={{ color: '#be123c', fontSize: '13px', margin: '4px 0 0 0' }}>{event.event_type} • {new Date(event.event_date).toLocaleDateString()}</p>
+                      <p style={{ fontWeight: 600, margin: 0, color: '#9ca3af' }}>{event.event_name}</p>
+                      <p style={{ color: '#9ca3af', fontSize: '13px', margin: '4px 0 0 0' }}>Deleted Event</p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     <button onClick={() => restoreEvent(event.id)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Restore</button>
                     <button onClick={() => permanentlyDeleteEvent(event.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete Permanently</button>
                   </div>
