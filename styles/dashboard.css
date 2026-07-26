@@ -99,6 +99,8 @@ body {
   border-bottom: 1px solid var(--glass-border);
   padding: 16px 24px;
   display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
   justify-content: space-between;
   align-items: center;
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);

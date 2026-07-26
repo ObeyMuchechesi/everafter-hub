@@ -697,9 +697,9 @@ export default function Admin({ initialRole = 'admin' }) {
     <div className="dashboard-layout">
       <header className="dashboard-header">
         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/logo.png" alt="EverAfter Logo" style={{ height: '70px', width: 'auto', objectFit: 'contain', margin: '-10px 0' }} /> 
-            EverAfter {isAdmin ? 'Admin' : 'User'}
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <img src="/logo.png" alt="EverAfter Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain', transform: 'scale(1.8)', transformOrigin: 'center left' }} /> 
+            <span style={{ whiteSpace: 'nowrap' }}>EverAfter {isAdmin ? 'Admin' : 'User'}</span>
           </h1>
           <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '11px' }}>{roleTheme.description}</p>
         </motion.div>
