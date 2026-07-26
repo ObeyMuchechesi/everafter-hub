@@ -3,13 +3,7 @@
   "couple": "Sarah & James",
   "date": "June 14, 2026",
   "venue": "The Grand Ballroom, Harare",
-  "guests": [
-    { "name": "Netsai Mukanwa", "table": 5, "diet": "vegetarian" },
-    { "name": "Tendai Chikosi", "table": 3, "diet": "" },
-    { "name": "Rudo Makoni", "table": 1, "diet": "gluten-free" },
-    { "name": "Simba Musariri", "table": 5, "diet": "" },
-    { "name": "Farai Zhou", "table": 7, "diet": "" }
-  ],
+  "guests": [],
   "timeline": [
     { "time": "14:00", "event": "Ceremony", "location": "Main Hall" },
     { "time": "15:30", "event": "Cocktail Hour", "location": "Garden Terrace" },

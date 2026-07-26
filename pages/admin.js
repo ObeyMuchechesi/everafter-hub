@@ -76,6 +76,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [newEvent, setNewEvent] = useState({ event_type: 'wedding', event_name: '', host_name: '', event_date: '', venue: '', slug: '', assigned_user_id: '', background_theme: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80', cover_photo: '', number_of_tables: 10, chairs_per_table: 10 });
   const [previewCover, setPreviewCover] = useState(null);
   const [editingGuestId, setEditingGuestId] = useState(null);
+  const [viewingGuest, setViewingGuest] = useState(null);
   const [editGuestTable, setEditGuestTable] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
   const [newUserForEvent, setNewUserForEvent] = useState({ email: '', full_name: '', password: '' });
@@ -374,6 +375,7 @@ export default function Admin({ initialRole = 'admin' }) {
         user_id: assignedUserId || currentUser?.id || YOUR_USER_ID,
       };
       delete eventPayload.assigned_user_id;
+      delete eventPayload.guestCount;
 
       let dbResult;
       if (editingEventId) {
@@ -723,11 +725,11 @@ export default function Admin({ initialRole = 'admin' }) {
     <div className="dashboard-layout">
       <header className="dashboard-header">
         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <img src="/logo.png" alt="EverAfter Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain', transform: 'scale(1.8)', transformOrigin: 'center left' }} /> 
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img src="/logo.png" alt="EverAfter Logo" style={{ height: '120px', maxWidth: '250px', objectFit: 'contain', margin: '-20px 0 -20px -10px' }} /> 
             <span style={{ whiteSpace: 'nowrap' }}>EverAfter {isAdmin ? 'Admin' : 'User'}</span>
           </h1>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '11px' }}>{roleTheme.description}</p>
+          <p style={{ margin: '0 0 0 10px', color: '#6b7280', fontSize: '11px' }}>{roleTheme.description}</p>
         </motion.div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '4px 8px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
@@ -735,8 +737,6 @@ export default function Admin({ initialRole = 'admin' }) {
           <button onClick={() => { localStorage.removeItem('everafter_admin_user'); router.push('/login'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><IoLogOut size={18} /></button>
         </div>
       </header>
-
-      {isLoading && <FullPageLoader text="Loading Workspace..." />}
 
       {showQRModal && qrEvent && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
@@ -1182,7 +1182,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 <div key={guest.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '15px' }}>{guest.first_name} {guest.last_name}</span>
+                      <span onClick={() => setViewingGuest(guest)} style={{ fontWeight: 700, fontSize: '15px', cursor: 'pointer', color: '#4f46e5', textDecoration: 'underline' }} title="Click for details">{guest.first_name} {guest.last_name}</span>
                       {editingGuestId === guest.id ? (
                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                           <input type="number" value={editGuestTable} onChange={(e) => setEditGuestTable(e.target.value)} style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }} />
@@ -1201,12 +1201,32 @@ export default function Admin({ initialRole = 'admin' }) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => toggleGuestReserved(guest.id, guest.is_reserved)} style={{ background: guest.is_reserved ? '#ede9fe' : '#f3f4f6', color: guest.is_reserved ? '#5b21b6' : '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>{guest.is_reserved ? 'Unreserve' : 'Reserve'}</button>
-                    <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/${guest.guest_token}`); alert('RSVP link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>🔗 Copy RSVP</button>
-                    <button onClick={() => deleteItem('guests', guest.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
+                    <button onClick={(e) => { e.stopPropagation(); setViewingGuest(guest); }} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>👁 View Details</button>
+                    <button onClick={(e) => { e.stopPropagation(); toggleGuestReserved(guest.id, guest.is_reserved); }} style={{ background: guest.is_reserved ? '#ede9fe' : '#f3f4f6', color: guest.is_reserved ? '#5b21b6' : '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>{guest.is_reserved ? 'Unreserve' : 'Reserve'}</button>
+                    <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${baseUrl}/rsvp/${guest.guest_token}`); alert('RSVP link copied!'); }} style={{ background: '#f3f4f6', color: '#4b5563', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>🔗 Copy RSVP</button>
+                    <button onClick={(e) => { e.stopPropagation(); deleteItem('guests', guest.id); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
                   </div>
                 </div>
               ))}
+              
+              {viewingGuest && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewingGuest(null)}>
+                  <div style={{ background: 'white', padding: '30px', borderRadius: '16px', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }} onClick={e => e.stopPropagation()}>
+                    <h2 style={{ margin: '0 0 20px 0', fontFamily: 'Playfair Display, serif', color: '#1f2937' }}>Guest Details</h2>
+                    <div style={{ display: 'grid', gap: '12px', fontSize: '14px', color: '#374151' }}>
+                      <div><strong style={{ color: '#111827' }}>First Name:</strong> {viewingGuest.first_name}</div>
+                      <div><strong style={{ color: '#111827' }}>Surname:</strong> {viewingGuest.last_name}</div>
+                      <div><strong style={{ color: '#111827' }}>Table:</strong> {viewingGuest.table_number || 'Unassigned'}</div>
+                      <div><strong style={{ color: '#111827' }}>Dietary:</strong> {viewingGuest.dietary_requirements || 'None'}</div>
+                      <div><strong style={{ color: '#111827' }}>RSVP Status:</strong> <span style={{ textTransform: 'capitalize' }}>{viewingGuest.rsvp_status || 'Pending'}</span></div>
+                      <div><strong style={{ color: '#111827' }}>Reserved:</strong> {viewingGuest.is_reserved ? 'Yes' : 'No'}</div>
+                      <div><strong style={{ color: '#111827' }}>Checked In:</strong> {viewingGuest.checked_in_at ? new Date(viewingGuest.checked_in_at).toLocaleString() : 'No'}</div>
+                      {viewingGuest.phone_number && <div><strong style={{ color: '#111827' }}>Phone:</strong> {viewingGuest.phone_number}</div>}
+                    </div>
+                    <button onClick={() => setViewingGuest(null)} style={{ marginTop: '24px', width: '100%', padding: '12px', background: '#f3f4f6', color: '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Close</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1333,7 +1353,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 
                 <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div style={{ fontSize: '24px', marginBottom: '8px' }}>✅</div>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={guests.filter(g => g.rsvp_status === 'attending').length} /></h3>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.rsvp_status === 'attending').length > 0 ? <AnimatedCounter value={guests.filter(g => g.rsvp_status === 'attending').length} /> : <span style={{ fontSize: '18px' }}>PENDING</span>}</h3>
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
                 </div>
 
