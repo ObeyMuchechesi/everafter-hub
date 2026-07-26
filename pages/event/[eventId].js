@@ -36,6 +36,7 @@ export default function EventPage() {
       couple: eventData.host_name || 'Guest',
       date: new Date(eventData.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
       venue: eventData.venue || '',
+      cover_photo: eventData.cover_photo || '',
       guests: guests?.map(g => ({ 
         id: g.id,
         name: `${(g.first_name || '').trim()} ${(g.last_name || '').trim()}`.trim(), 
@@ -99,12 +100,17 @@ export default function EventPage() {
   if (guest) {
     return (
       <div style={{ minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(135deg,#fff1f2,#fdf2f8,#fffbeb)',padding:16 }}>
-        <div style={{background:'white',borderRadius:24,padding:48,textAlign:'center',maxWidth:400,width:'100%',boxShadow:'0 8px 32px rgba(0,0,0,0.1)'}}>
-          <p style={{color:'#9ca3af',fontSize:12,textTransform:'uppercase',letterSpacing:2}}>Your Table</p>
-          <p style={{fontSize:80,fontFamily:'Playfair Display,serif',fontWeight:700,color:'#f43f5e',margin:'16px 0'}}>{guest.table}</p>
+        <div style={{background:'white',borderRadius:24,overflow:'hidden',textAlign:'center',maxWidth:400,width:'100%',boxShadow:'0 8px 32px rgba(0,0,0,0.1)'}}>
+          {event.cover_photo && (
+            <div style={{ width: '100%', height: '160px', backgroundImage: `url(${event.cover_photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          )}
+          <div style={{ padding: 48 }}>
+            <p style={{color:'#9ca3af',fontSize:12,textTransform:'uppercase',letterSpacing:2}}>Your Table</p>
+            <p style={{fontSize:80,fontFamily:'Playfair Display,serif',fontWeight:700,color:'#f43f5e',margin:'16px 0'}}>{guest.table}</p>
           {guest.diet && <p style={{color:'#6b7280'}}>🥗 {guest.diet}</p>}
           <p style={{marginTop:24}}>Welcome, {guest.name}!</p>
-          <button onClick={resetSearch} style={{marginTop:16,background:'transparent',border:'1px solid #e5e7eb',padding:'8px 20px',borderRadius:20,cursor:'pointer'}}>← Back</button>
+            <button onClick={resetSearch} style={{marginTop:16,background:'transparent',border:'1px solid #e5e7eb',padding:'8px 20px',borderRadius:20,cursor:'pointer'}}>← Back</button>
+          </div>
         </div>
       </div>
     );
@@ -112,8 +118,12 @@ export default function EventPage() {
 
   return (
     <div style={{ minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'linear-gradient(135deg,#fff1f2,#fdf2f8,#fffbeb)' }}>
-      <div style={{background:'white',borderRadius:24,padding:48,maxWidth:400,width:'100%',boxShadow:'0 8px 32px rgba(0,0,0,0.1)'}}>
-        <h1 style={{fontSize:28,fontFamily:'Playfair Display,serif',textAlign:'center',marginBottom:4}}>{event.couple}</h1>
+      <div style={{background:'white',borderRadius:24,overflow:'hidden',maxWidth:400,width:'100%',boxShadow:'0 8px 32px rgba(0,0,0,0.1)'}}>
+        {event.cover_photo && (
+          <div style={{ width: '100%', height: '160px', backgroundImage: `url(${event.cover_photo})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        )}
+        <div style={{ padding: 48 }}>
+          <h1 style={{fontSize:28,fontFamily:'Playfair Display,serif',textAlign:'center',marginBottom:4}}>{event.couple}</h1>
         <p style={{textAlign:'center',color:'#6b7280',marginBottom:4,fontSize:14}}>{event.date}</p>
         <p style={{textAlign:'center',color:'#9ca3af',marginBottom:24,fontSize:13}}>{event.venue}</p>
         
