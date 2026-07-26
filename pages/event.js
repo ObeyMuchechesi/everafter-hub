@@ -420,7 +420,7 @@ export default function EventPage() {
                         value={dietText} 
                         onChange={(e) => setDietText(e.target.value)} 
                         placeholder="e.g. Vegetarian, Nut allergy..." 
-                        style={{ width: '100%', height: '80px', padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb', resize: 'none', marginBottom: '12px', fontFamily: 'inherit' }}
+                        style={{ width: '100%', height: '80px', padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb', resize: 'none', marginBottom: '12px', fontFamily: 'inherit', color: '#111827', backgroundColor: 'white' }}
                       />
                       <button onClick={saveDietary} disabled={isSavingDiet} style={{ width: '100%', padding: '12px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', opacity: isSavingDiet ? 0.7 : 1 }}>
                         {isSavingDiet ? 'Saving...' : 'Save Dietary Preferences'}
@@ -483,7 +483,7 @@ export default function EventPage() {
                   <p style={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Leave a message for {event.couple}!</p>
                   
                   <form onSubmit={submitMessage} style={{ marginBottom: '30px' }}>
-                    <textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Write your message here..." style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', height: '100px', boxSizing: 'border-box', fontSize: '15px', resize: 'vertical' }} required></textarea>
+                    <textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Write your message here..." style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', height: '100px', boxSizing: 'border-box', fontSize: '15px', resize: 'vertical', color: '#111827', backgroundColor: 'white' }} required></textarea>
                     <button type="submit" disabled={isSubmitting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', marginTop: '12px', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '15px' }}>
                       {isSubmitting ? <><Spinner size="20px" /> Sending...</> : 'Submit Message'}
                     </button>
@@ -507,7 +507,7 @@ export default function EventPage() {
                     <strong>Note:</strong> Your feedback is completely anonymous and will only be visible to the event organizers and admins to help improve event handling.
                   </div>
                   <form onSubmit={submitFeedback}>
-                    <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Let us know where we can improve..." style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', height: '120px', boxSizing: 'border-box', fontSize: '15px', resize: 'vertical' }} required></textarea>
+                    <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Let us know where we can improve..." style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid #e5e7eb', height: '120px', boxSizing: 'border-box', fontSize: '15px', resize: 'vertical', color: '#111827', backgroundColor: 'white' }} required></textarea>
                     <button type="submit" disabled={isSubmittingFeedback} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', marginTop: '16px', background: 'linear-gradient(to right, #f59e0b, #d97706)', color: 'white', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 600, cursor: isSubmittingFeedback ? 'not-allowed' : 'pointer', fontSize: '15px' }}>
                       {isSubmittingFeedback ? <><Spinner size="20px" /> Sending...</> : 'Send Feedback Anonymously'}
                     </button>
