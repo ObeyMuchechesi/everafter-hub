@@ -831,7 +831,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Events</h2>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   {isAdmin && (
@@ -1008,7 +1008,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'users' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Admin Users</h2>
               </div>
               {users.map(user => {
@@ -1032,7 +1032,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'recycle' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Recycle Bin</h2>
               </div>
               {deletedEvents.length === 0 && <p style={{ color: '#6b7280', fontSize: '14px' }}>No deleted events.</p>}
@@ -1058,7 +1058,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'danger' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif', color: '#ef4444' }}>Danger Zone</h2>
               </div>
               
@@ -1105,10 +1105,10 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'guests' && selectedEvent && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Guests — {selectedEvent.event_name}</h2>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input type="text" placeholder="Search guests..." value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb' }} />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', margin: 0 }}>Guests — {selectedEvent.event_name}</h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  <input type="text" placeholder="Search guests..." value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: '1 1 200px' }} />
                   <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/new/${selectedEvent.id}`); alert('Event RSVP link copied! Send this to all guests.'); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }}>🔗 Copy Event RSVP Link</button>
                   <button onClick={() => { setShowImportForm(!showImportForm); setImportResult(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>📥 Import Guests</button>
                   <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
@@ -1142,7 +1142,7 @@ export default function Admin({ initialRole = 'admin' }) {
                 </div>
               )}
               {guests.filter(g => guestSearch === '' || g.first_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.last_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.table_number.toString().includes(guestSearch)).map(guest => (
-                <div key={guest.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div key={guest.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontWeight: 700, fontSize: '15px' }}>{guest.first_name} {guest.last_name}</span>
@@ -1175,7 +1175,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'timeline' && selectedEvent && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Timeline — {selectedEvent.event_name}</h2>
                 <button onClick={() => setShowTimelineForm(!showTimelineForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Item</button>
               </div>
@@ -1201,7 +1201,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'menu' && selectedEvent && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Menu — {selectedEvent.event_name}</h2>
                 <button onClick={() => { setEditingMenu(null); setNewMenu({ course_type: 'starter', dish_name: '', description: '' }); setShowMenuForm(!showMenuForm); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>{showMenuForm ? 'Cancel' : '+ Add Course'}</button>
               </div>
@@ -1238,7 +1238,7 @@ export default function Admin({ initialRole = 'admin' }) {
 
           {activeTab === 'photos' && selectedEvent && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif' }}>Photos — {selectedEvent.event_name}</h2>
               </div>
               <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
