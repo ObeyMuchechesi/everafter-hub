@@ -10,6 +10,32 @@ import Spinner from '../components/Spinner';
 const YOUR_USER_ID = '2b4afcb9-4075-42a5-a612-949496562698';
 const baseUrl = 'https://everafter-hub.vercel.app';
 
+const AnimatedCounter = ({ value, duration = 1500 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp = null;
+    const endValue = parseInt(value, 10) || 0;
+    
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(easeProgress * endValue));
+      
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setCount(endValue);
+      }
+    };
+    
+    window.requestAnimationFrame(step);
+  }, [value, duration]);
+
+  return <>{count}</>;
+};
+
 export default function Admin({ initialRole = 'admin' }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -816,30 +842,30 @@ export default function Admin({ initialRole = 'admin' }) {
           
           {activeTab === 'events' && (
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div><IoStar size={32} color="#f43f5e" style={{ marginBottom: '8px' }} /></div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{events.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
+              <div className="stat-grid" style={{ marginBottom: '24px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div><IoStar size={24} color="#f43f5e" style={{ marginBottom: '8px' }} /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={events.length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Events</p>
                 </div>
                 {isAdmin && (
-                  <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                    <div><IoPeople size={32} color="#10b981" style={{ marginBottom: '8px' }} /></div>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{users.length}</h3>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
+                  <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                    <div><IoPeople size={24} color="#10b981" style={{ marginBottom: '8px' }} /></div>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={users.length} /></h3>
+                    <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
                   </div>
                 )}
                 {isAdmin && (
-                  <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                    <div><IoPerson size={32} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{totalGuestsCount}</h3>
-                    <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Guests</p>
+                  <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                    <div><IoPerson size={24} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={totalGuestsCount} /></h3>
+                    <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Guests</p>
                   </div>
                 )}
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div><IoTime size={32} color="#8b5cf6" style={{ marginBottom: '8px' }} /></div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div><IoTime size={24} color="#8b5cf6" style={{ marginBottom: '8px' }} /></div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={events.filter(e => new Date(e.event_date) < new Date()).length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Past Events</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -1297,48 +1323,48 @@ export default function Admin({ initialRole = 'admin' }) {
           {activeTab === 'analytics' && selectedEvent && (
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Event Analytics</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+              <div className="stat-grid" style={{ marginBottom: '24px' }}>
                 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}>{guests.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Invited</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>👥</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#1f2937', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={guests.length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Invited</p>
                 </div>
                 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.rsvp_status === 'attending').length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>✅</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#10b981', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={guests.filter(g => g.rsvp_status === 'attending').length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Attending</p>
                 </div>
 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📍</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{guests.filter(g => g.checked_in_at).length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Checked In</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📍</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={guests.filter(g => g.checked_in_at).length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Checked In</p>
                 </div>
 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f43f5e', fontFamily: 'Playfair Display, serif' }}>{photos.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Photos Uploaded</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📸</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#f43f5e', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={photos.length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Photos Uploaded</p>
                 </div>
 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{messages.length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>💬</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={messages.length} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Guestbook Messages</p>
                 </div>
 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🍽️</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#2563eb', fontFamily: 'Playfair Display, serif' }}>{Math.ceil(guests.length / selectedEvent.chairs_per_table)} / {selectedEvent.number_of_tables}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Tables Used</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🍽️</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#2563eb', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={Math.ceil(guests.length / selectedEvent.chairs_per_table)} /> / <AnimatedCounter value={selectedEvent.number_of_tables} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Tables Used</p>
                 </div>
 
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🪑</div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#059669', fontFamily: 'Playfair Display, serif' }}>{guests.length} / {Math.max(0, (selectedEvent.number_of_tables * selectedEvent.chairs_per_table) - guests.length)}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Occupied / Left</p>
+                <div style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🪑</div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '24px', color: '#059669', fontFamily: 'Playfair Display, serif' }}><AnimatedCounter value={guests.length} /> / <AnimatedCounter value={Math.max(0, (selectedEvent.number_of_tables * selectedEvent.chairs_per_table) - guests.length)} /></h3>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Occupied / Left</p>
                 </div>
 
               </div>
