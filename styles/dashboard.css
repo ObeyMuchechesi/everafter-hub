@@ -283,9 +283,9 @@ body {
     border-radius: 16px;
   }
   .header-logo-img {
-    height: 60px !important;
-    max-width: 140px !important;
-    margin: -10px 0 -10px -5px !important;
+    height: 120px !important;
+    max-width: 200px !important;
+    margin: -30px 0 -30px -15px !important;
   }
   .header-title-text {
     font-size: 22px !important;
