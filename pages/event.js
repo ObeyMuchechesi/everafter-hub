@@ -288,10 +288,10 @@ export default function EventPage() {
             >
               {activeTab === 'details' && (
                 <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '0 0 40px 0', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                  {event.coverPhoto && (
-                    <img src={event.coverPhoto} alt="Event Cover" style={{ width: '100%', height: '200px', objectFit: 'cover', marginBottom: '20px' }} />
+                  {(event.coverPhoto || event.backgroundTheme) && (
+                    <img src={event.coverPhoto || event.backgroundTheme} alt="Event Cover" style={{ width: '100%', height: '200px', objectFit: 'cover', marginBottom: '20px' }} />
                   )}
-                  <div style={{ padding: event.coverPhoto ? '0 20px' : '40px 20px 0 20px' }}>
+                  <div style={{ padding: (event.coverPhoto || event.backgroundTheme) ? '0 20px' : '40px 20px 0 20px' }}>
                     <p style={{ color: '#9ca3af', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>Your Table</p>
                     <p style={{ fontSize: '80px', fontFamily: 'Playfair Display, serif', fontWeight: 700, background: 'linear-gradient(to bottom right, #f43f5e, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0' }}>{guest.table}</p>
                     {guest.diet && <p style={{ color: '#6b7280', marginTop: '16px', fontSize: '14px' }}>🥗 Dietary: {guest.diet}</p>}
@@ -417,6 +417,9 @@ export default function EventPage() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '40px 30px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}
       >
+        {(event.coverPhoto || event.backgroundTheme) && (
+          <div style={{ margin: '-40px -30px 30px -30px', height: '180px', backgroundImage: `url(${event.coverPhoto || event.backgroundTheme})`, backgroundSize: 'cover', backgroundPosition: 'center', borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }}></div>
+        )}
         <div style={{ width: '60px', height: '4px', background: 'linear-gradient(to right, #fb7185, #fbbf24)', borderRadius: '9999px', margin: '0 auto 24px' }}></div>
         <h1 style={{ fontSize: '32px', fontFamily: 'Playfair Display, serif', textAlign: 'center', marginBottom: '4px', color: '#1f2937' }}>{event.couple}</h1>
         <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '32px', fontSize: '14px', fontWeight: 400 }}>{event.date}</p>
