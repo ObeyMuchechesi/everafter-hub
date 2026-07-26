@@ -23,6 +23,7 @@ export default function Admin({ initialRole = 'admin' }) {
   const [events, setEvents] = useState([]);
   const [deletedEvents, setDeletedEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [totalGuestsCount, setTotalGuestsCount] = useState(0);
   const [editingEventId, setEditingEventId] = useState(null);
   const [guestSearch, setGuestSearch] = useState('');
   const [users, setUsers] = useState([]);
@@ -194,6 +195,12 @@ export default function Admin({ initialRole = 'admin' }) {
     const allEvents = data || [];
     setEvents(allEvents.filter(e => !e.is_deleted));
     setDeletedEvents(allEvents.filter(e => e.is_deleted));
+    
+    if (user && user.role === 'admin') {
+      const { count } = await supabase.from('guests').select('*', { count: 'exact', head: true });
+      setTotalGuestsCount(count || 0);
+    }
+    
     setIsLoading(false);
   };
 
@@ -799,11 +806,13 @@ export default function Admin({ initialRole = 'admin' }) {
                     <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Active Users</p>
                   </div>
                 )}
-                <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  <div><IoCalendar size={32} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) >= new Date()).length}</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Upcoming Events</p>
-                </div>
+                {isAdmin && (
+                  <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                    <div><IoPerson size={32} color="#f59e0b" style={{ marginBottom: '8px' }} /></div>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#f59e0b', fontFamily: 'Playfair Display, serif' }}>{totalGuestsCount}</h3>
+                    <p style={{ margin: 0, color: '#6b7280', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Total Guests</p>
+                  </div>
+                )}
                 <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                   <div><IoTime size={32} color="#8b5cf6" style={{ marginBottom: '8px' }} /></div>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '28px', color: '#8b5cf6', fontFamily: 'Playfair Display, serif' }}>{events.filter(e => new Date(e.event_date) < new Date()).length}</h3>
