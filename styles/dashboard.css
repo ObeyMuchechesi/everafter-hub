@@ -309,22 +309,32 @@ body {
 /* Mobile Header Overrides */
 @media (max-width: 768px) {
   .dashboard-header {
-    padding: 12px 16px;
+    padding: 20px 16px;
     margin: 12px 12px 0 12px;
     border-radius: 16px;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 12px;
   }
   .header-logo-img {
     height: 120px !important;
     max-width: 200px !important;
-    margin: -30px 0 -30px -15px !important;
+    margin: -40px 0 -30px 0 !important;
   }
   .header-title-text {
-    font-size: 22px !important;
+    font-size: 24px !important;
+    white-space: normal !important;
+    text-align: center;
+    line-height: 1.2;
   }
   .header-title-container {
-    gap: 8px !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: center !important;
   }
   .header-subtitle {
-    margin: 4px 0 0 4px !important;
+    margin: 0 !important;
+    text-align: center !important;
   }
 }
