@@ -74,7 +74,7 @@ export default function EventPage() {
     const { data: guests } = await supabase.from('guests').select('*').eq('event_id', eventData.id).order('table_number');
     const { data: timeline } = await supabase.from('timeline_items').select('*').eq('event_id', eventData.id).order('sort_order');
     const { data: menuItems } = await supabase.from('menu_items').select('*').eq('event_id', eventData.id);
-    const { data: guestMessages } = await supabase.from('guestbook').select('*').eq('event_id', eventData.id).order('created_at', { ascending: false });
+    const { data: guestMessages } = await supabase.from('guestbook').select('*').eq('event_id', eventData.id).eq('is_approved', true).order('created_at', { ascending: false });
     const { data: eventPhotos } = await supabase.from('photos').select('*').eq('event_id', eventData.id).eq('is_approved', true).order('created_at', { ascending: false });
     const { data: chatMessages } = await supabase.from('live_chat_messages').select('*').eq('event_id', eventData.id).order('created_at', { ascending: true });
 

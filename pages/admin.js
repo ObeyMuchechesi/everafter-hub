@@ -647,6 +647,11 @@ export default function Admin({ initialRole = 'admin' }) {
     if (selectedEvent) loadPhotos(selectedEvent.id);
   };
 
+  const approveMessage = async (id, approved) => {
+    await supabase.from('guestbook').update({ is_approved: approved }).eq('id', id);
+    if (selectedEvent) loadMessages(selectedEvent.id);
+  };
+
   const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -727,12 +732,12 @@ export default function Admin({ initialRole = 'admin' }) {
         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}>
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'var(--fluid-font-lg)', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
             <img src="/logo.png" alt="EverAfter Logo" style={{ height: '120px', maxWidth: '250px', objectFit: 'contain', margin: '-20px 0 -20px -10px' }} /> 
-            <span style={{ whiteSpace: 'nowrap' }}>EverAfter {isAdmin ? 'Admin' : 'User'}</span>
+            <span style={{ whiteSpace: 'nowrap', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>EverAfter {isAdmin ? 'Admin' : 'User'}</span>
           </h1>
-          <p style={{ margin: '0 0 0 10px', color: '#6b7280', fontSize: '11px' }}>{roleTheme.description}</p>
+          <p style={{ margin: '0 0 0 10px', color: 'rgba(255,255,255,0.85)', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>{roleTheme.description}</p>
         </motion.div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: roleTheme.accent, background: roleTheme.glow, border: `1px solid ${roleTheme.accent}22`, padding: '4px 8px', borderRadius: '999px', fontWeight: 600 }}>{roleTheme.badge}</span>
+          <span style={{ fontSize: '11px', color: roleTheme.primary, background: 'rgba(255, 255, 255, 0.85)', border: `1px solid rgba(255,255,255,1)`, padding: '4px 12px', borderRadius: '999px', fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>{roleTheme.badge}</span>
           <button onClick={() => { setPasswordData({ userId: currentUser?.id, newPassword: '' }); setShowPasswordForm(true); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: roleTheme.primary, color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(244,63,94,0.3)' }} title="Change Password"><IoKey size={18} /></button>
           <button onClick={() => { localStorage.removeItem('everafter_admin_user'); router.push('/login'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }} title="Logout"><IoLogOut size={18} /></button>
         </div>
@@ -1023,10 +1028,10 @@ export default function Admin({ initialRole = 'admin' }) {
                       {isAdmin && <p style={{ color: '#9ca3af', fontSize: '12px', margin: '2px 0 0 0' }}>Assigned to: {users.find((u) => u.id === event.user_id)?.full_name || 'Unassigned'}</p>}
                       <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                          🪑 {event.guestCount || 0} occupied / {Math.max(0, (event.number_of_tables * event.chairs_per_table) - (event.guestCount || 0))} left
+                          🪑 Chairs: {event.guestCount || 0} occupied / {Math.max(0, (event.number_of_tables * event.chairs_per_table) - (event.guestCount || 0))} left / {event.number_of_tables * event.chairs_per_table} total
                         </span>
                         <span style={{ fontSize: '11px', background: '#eff6ff', color: '#2563eb', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                          🍽️ {Math.ceil((event.guestCount || 0) / event.chairs_per_table)} used / {event.number_of_tables} total
+                          🍽️ Tables: {Math.ceil((event.guestCount || 0) / event.chairs_per_table)} used / {event.number_of_tables} total
                         </span>
                       </div>
                       <code style={{ fontSize: '11px', color: '#f43f5e', display: 'block', marginTop: '6px' }}>event?id={event.slug}</code>
@@ -1335,7 +1340,27 @@ export default function Admin({ initialRole = 'admin' }) {
             <div>
               <h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Guestbook — {selectedEvent.event_name}</h2>
               {messages.map(msg => (
-                <div key={msg.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between' }}><div><p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p><p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p></div><button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', height: 'fit-content' }}>Delete</button></div>
+                <div key={msg.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <p style={{ fontWeight: 600, margin: 0 }}>{msg.guest_name}</p>
+                      {msg.is_approved ? (
+                        <span style={{ fontSize: '10px', background: '#d1fae5', color: '#065f46', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Approved</span>
+                      ) : (
+                        <span style={{ fontSize: '10px', background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Pending Approval</span>
+                      )}
+                    </div>
+                    <p style={{ color: '#4b5563', margin: '4px 0 0 0' }}>{msg.message}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {msg.is_approved ? (
+                      <button onClick={() => approveMessage(msg.id, false)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Unapprove</button>
+                    ) : (
+                      <button onClick={() => approveMessage(msg.id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Approve</button>
+                    )}
+                    <button onClick={() => deleteItem('guestbook', msg.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
+                  </div>
+                </div>
               ))}
             </div>
           )}
