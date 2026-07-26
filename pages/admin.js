@@ -52,6 +52,8 @@ export default function Admin({ initialRole = 'admin' }) {
   const [totalGuestsCount, setTotalGuestsCount] = useState(0);
   const [editingEventId, setEditingEventId] = useState(null);
   const [guestSearch, setGuestSearch] = useState('');
+  const [guestSort, setGuestSort] = useState('default');
+  const [guestSort, setGuestSort] = useState('default');
   const [users, setUsers] = useState([]);
   const [dangerInput, setDangerInput] = useState({ everything: '', events: '', users: '', guests: '', targetEventId: 'all' });
   const [guests, setGuests] = useState([]);
@@ -1164,11 +1166,22 @@ export default function Admin({ initialRole = 'admin' }) {
           {activeTab === 'guests' && selectedEvent && (
             <div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontFamily: 'Playfair Display, serif', margin: 0 }}>Guests — {selectedEvent.event_name}</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <h2 style={{ fontFamily: 'Playfair Display, serif', margin: 0 }}>Guests — {selectedEvent.event_name}</h2>
+                  <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600 }}>
+                    Total: {guests.length} &bull; Checked In: {guests.filter(g => g.checked_in).length} &bull; Remaining: {guests.length - guests.filter(g => g.checked_in).length}
+                  </div>
+                </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                  <input type="text" placeholder="Search guests..." value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: '1 1 200px' }} />
-                  <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/new/${selectedEvent.id}`); alert('Event RSVP link copied! Send this to all guests.'); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }}>🔗 Copy Event RSVP Link</button>
-                  <button onClick={() => { setShowImportForm(!showImportForm); setImportResult(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>📥 Import Guests</button>
+                  <input type="text" placeholder="Search guests..." value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: '1 1 150px' }} />
+                  <select value={guestSort} onChange={(e) => setGuestSort(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e5e7eb', flex: '1 1 120px' }}>
+                    <option value="default">Default Order</option>
+                    <option value="alphabetical">Alphabetical</option>
+                    <option value="table">By Table</option>
+                    <option value="checkin">Checked-in First</option>
+                  </select>
+                  <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/rsvp/new/${selectedEvent.id}`); alert('Event RSVP link copied! Send this to all guests.'); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#e0e7ff', color: '#4f46e5', fontWeight: 600 }}>🔗 Copy RSVP Link</button>
+                  <button onClick={() => { setShowImportForm(!showImportForm); setImportResult(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>📥 Import</button>
                   <button onClick={() => setShowGuestForm(!showGuestForm)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: 'linear-gradient(to right, #f43f5e, #ec4899)', color: 'white', fontWeight: 600 }}>+ Add Guest</button>
                 </div>
               </div>
@@ -1199,7 +1212,18 @@ export default function Admin({ initialRole = 'admin' }) {
                   </form>
                 </div>
               )}
-              {guests.filter(g => guestSearch === '' || g.first_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.last_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.table_number.toString().includes(guestSearch)).map(guest => (
+              {(() => {
+                let filtered = guests.filter(g => guestSearch === '' || g.first_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.last_name.toLowerCase().includes(guestSearch.toLowerCase()) || g.table_number.toString().includes(guestSearch));
+                if (guestSort === 'alphabetical') {
+                  filtered.sort((a, b) => a.first_name.localeCompare(b.first_name));
+                } else if (guestSort === 'table') {
+                  filtered.sort((a, b) => a.table_number - b.table_number);
+                } else if (guestSort === 'checkin') {
+                  filtered.sort((a, b) => (a.checked_in === b.checked_in ? 0 : a.checked_in ? -1 : 1));
+                } else {
+                  filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                }
+                return filtered.map(guest => (
                 <div key={guest.id} style={{ background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', marginBottom: '12px', display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -1229,6 +1253,7 @@ export default function Admin({ initialRole = 'admin' }) {
                   </div>
                 </div>
               ))}
+              })()}
               
               {viewingGuest && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewingGuest(null)}>
