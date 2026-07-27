@@ -54,7 +54,6 @@ export default function Admin({ initialRole = 'admin' }) {
   const [editingEventId, setEditingEventId] = useState(null);
   const [guestSearch, setGuestSearch] = useState('');
   const [guestSort, setGuestSort] = useState('default');
-  const [guestSort, setGuestSort] = useState('default');
   const [users, setUsers] = useState([]);
   const [dangerInput, setDangerInput] = useState({ everything: '', events: '', users: '', guests: '', targetEventId: 'all' });
   const [guests, setGuests] = useState([]);
@@ -739,7 +738,6 @@ export default function Admin({ initialRole = 'admin' }) {
 
   return (
     <>
-
       {selectedPhoto && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', flexDirection: 'column' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedPhoto(null); }}>
           <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedPhoto(null); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '30px', cursor: 'pointer', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000000 }}>&times;</button>
@@ -1265,8 +1263,7 @@ export default function Admin({ initialRole = 'admin' }) {
                     <button onClick={(e) => { e.stopPropagation(); deleteItem('guests', guest.id); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Delete</button>
                   </div>
                 </div>
-              ))}
-              })()}
+              ))})()}
               
               {viewingGuest && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewingGuest(null)}>
