@@ -1541,9 +1541,107 @@ export default function Admin({ initialRole = 'admin' }) {
               </form>
             </div>
           )}
-          {activeTab === 'reports' && selectedEvent && (
-            <div><h2 style={{ fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}>Export Reports</h2><p>Guest list, dietary summary, seating chart coming soon...</p></div>
-          )}
+          {activeTab === 'reports' && selectedEvent && (() => {
+            const attending = guests.filter(g => g.rsvp_status === 'attending').length;
+            const declined = guests.filter(g => g.rsvp_status === 'declined').length;
+            const pending = guests.length - attending - declined;
+            
+            const dietaryCounts = {};
+            guests.forEach(g => {
+              if (g.dietary_requirements && g.dietary_requirements.trim().toLowerCase() !== 'none' && g.dietary_requirements.trim().toLowerCase() !== 'no') {
+                const reqs = g.dietary_requirements.split(',').map(r => r.trim().toLowerCase());
+                reqs.forEach(r => {
+                  if(r) dietaryCounts[r] = (dietaryCounts[r] || 0) + 1;
+                });
+              }
+            });
+
+            return (
+              <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                  <h2 style={{ fontFamily: 'Playfair Display, serif', margin: 0 }}>Event Reports</h2>
+                  <button onClick={() => {
+                    const headers = ['First Name', 'Last Name', 'RSVP Status', 'Table Number', 'Dietary Requirements', 'Plus Ones'];
+                    const csvContent = "data:text/csv;charset=utf-8," 
+                      + headers.join(",") + "\n"
+                      + guests.map(g => [
+                          `"${(g.first_name || '').replace(/"/g, '""')}"`,
+                          `"${(g.last_name || '').replace(/"/g, '""')}"`,
+                          `"${g.rsvp_status || 'pending'}"`,
+                          `"${g.table_number || ''}"`,
+                          `"${(g.dietary_requirements || '').replace(/"/g, '""')}"`,
+                          `"${g.plus_ones || 0}"`
+                        ].join(",")).join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `${selectedEvent.couple.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_guests.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }} style={{ background: 'linear-gradient(to right, #4f46e5, #7c3aed)', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '12px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
+                    Download CSV Report
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderLeft: '4px solid #3b82f6' }}>
+                    <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px', fontWeight: 600 }}>Total Guests</p>
+                    <h3 style={{ margin: 0, fontSize: '28px', color: '#111827' }}>{guests.length}</h3>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderLeft: '4px solid #10b981' }}>
+                    <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px', fontWeight: 600 }}>Attending</p>
+                    <h3 style={{ margin: 0, fontSize: '28px', color: '#111827' }}>{attending}</h3>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderLeft: '4px solid #ef4444' }}>
+                    <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px', fontWeight: 600 }}>Declined</p>
+                    <h3 style={{ margin: 0, fontSize: '28px', color: '#111827' }}>{declined}</h3>
+                  </div>
+                  <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderLeft: '4px solid #f59e0b' }}>
+                    <p style={{ margin: '0 0 8px 0', color: '#6b7280', fontSize: '14px', fontWeight: 600 }}>Pending RSVP</p>
+                    <h3 style={{ margin: 0, fontSize: '28px', color: '#111827' }}>{pending}</h3>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                  <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ margin: '0 0 16px 0', fontFamily: 'Playfair Display, serif', fontSize: '20px' }}>Dietary Requirements</h3>
+                    {Object.keys(dietaryCounts).length === 0 ? (
+                      <p style={{ color: '#6b7280', fontStyle: 'italic', margin: 0 }}>No dietary requirements reported.</p>
+                    ) : (
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {Object.entries(dietaryCounts).sort((a,b) => b[1] - a[1]).map(([req, count]) => (
+                          <li key={req} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #f3f4f6' }}>
+                            <span style={{ textTransform: 'capitalize', fontWeight: 500, color: '#374151' }}>{req}</span>
+                            <span style={{ background: '#fef3c7', color: '#b45309', padding: '4px 12px', borderRadius: '9999px', fontSize: '14px', fontWeight: 600 }}>{count} guests</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  
+                  <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <h3 style={{ margin: '0 0 16px 0', fontFamily: 'Playfair Display, serif', fontSize: '20px' }}>Table Overview</h3>
+                    <p style={{ color: '#6b7280', margin: '0 0 16px 0', fontSize: '14px' }}>Quick summary of guests per table.</p>
+                    <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '8px' }} className="hide-scrollbar">
+                      {Array.from(new Set(guests.map(g => g.table_number).filter(t => t !== null && t !== undefined && t !== ''))).sort((a,b) => Number(a) - Number(b)).map(table => (
+                        <div key={table} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
+                          <span style={{ fontWeight: 500, color: '#374151' }}>Table {table}</span>
+                          <span style={{ color: '#6b7280', fontSize: '14px' }}>{guests.filter(g => g.table_number == table).length} guests</span>
+                        </div>
+                      ))}
+                      {guests.filter(g => !g.table_number).length > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
+                          <span style={{ fontWeight: 500, color: '#ef4444' }}>Unassigned</span>
+                          <span style={{ color: '#ef4444', fontSize: '14px', fontWeight: 600 }}>{guests.filter(g => !g.table_number).length} guests</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {['guests','timeline','menu','photos','messages','analytics','table_planner','photo_queue','live_chat','reports'].includes(activeTab) && !selectedEvent && (
             <div style={{ textAlign: 'center', padding: '60px', color: '#9ca3af' }}><p style={{ fontSize: '40px' }}>👈</p><p>Select an event from the Events tab first</p></div>
